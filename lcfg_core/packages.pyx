@@ -76,9 +76,8 @@ cdef class LCFGPackage:
         char * __str_buf
         size_t __buf_size
 
-    def __init__( self, spec=None, style=None, **kwargs ):
-        for attr in self.fields:
-            if attr in kwargs: setattr( self, attr, kwargs[attr] )
+    def __init__( self, **kwargs ):
+        self.update(**kwargs)
 
     def __cinit__( self, full_init=True, **kwargs ):
 
