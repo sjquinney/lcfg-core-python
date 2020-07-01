@@ -1,5 +1,5 @@
 from libc.stdio cimport FILE
-from libc.time cimport time_t
+from libc.time  cimport time_t
 
 cdef extern from "lcfg/packages.h":
     ctypedef struct LCFGPackageStruct "LCFGPackage":
@@ -65,9 +65,13 @@ cdef extern from "lcfg/packages.h":
     bint lcfgpackage_add_context( LCFGPackageStruct * pkg, const char * extra )
 
     bint lcfgpackage_has_derivation( const LCFGPackageStruct * pkg )
-    ssize_t lcfgpackage_get_derivation_as_string( const LCFGPackageStruct * pkg, LCFGOption options, char ** result, size_t * size )
-    bint lcfgpackage_set_derivation_as_string( LCFGPackageStruct * pkg, const char * new_value )
-    bint lcfgpackage_add_derivation_string( LCFGPackageStruct * pkg, const char * extra_deriv )
+    ssize_t lcfgpackage_get_derivation_as_string(const LCFGPackageStruct * pkg,
+                                                 LCFGOption options,
+                                                 char ** result, size_t * size )
+    bint lcfgpackage_set_derivation_as_string( LCFGPackageStruct * pkg,
+                                               const char * new_value )
+    bint lcfgpackage_add_derivation_string( LCFGPackageStruct * pkg,
+                                            const char * extra_deriv )
     bint lcfgpackage_add_derivation_file_line( LCFGPackageStruct * res, const char * filename, unsigned int linenum )
 
     bint lcfgpackage_valid_category( const char * category )
@@ -79,21 +83,35 @@ cdef extern from "lcfg/packages.h":
     bint lcfgpackage_set_priority( LCFGPackageStruct * pkg, int priority )
     bint lcfgpackage_is_active( const LCFGPackageStruct * pkg )
 
-    ssize_t lcfgpackage_to_string( const LCFGPackageStruct * pkg, const char * defarch, LCFGPkgStyle style, LCFGOption options, char ** result, size_t * size )
+    ssize_t lcfgpackage_to_string( const LCFGPackageStruct * pkg,
+                                   const char * defarch,
+                                   LCFGPkgStyle style, LCFGOption options,
+                                   char ** result, size_t * size )
 
-    LCFGStatus lcfgpackage_from_spec( const char * input, LCFGPackageStruct ** result, char ** msg)
-    LCFGStatus lcfgpackage_from_rpm_filename( const char * input, LCFGPackageStruct ** result, char ** msg)
+    LCFGStatus lcfgpackage_from_spec( const char * input,
+                                      LCFGPackageStruct ** result,
+                                      char ** msg)
+
+    LCFGStatus lcfgpackage_from_rpm_filename( const char * input,
+                                              LCFGPackageStruct ** result,
+                                              char ** msg)
 
     bint lcfgpackage_is_valid( const LCFGPackageStruct * pkg )
 
     char * lcfgpackage_id( const LCFGPackageStruct * pkg )
 
-    int lcfgpackage_compare_names( const LCFGPackageStruct * pkg1, const LCFGPackageStruct * pkg2 );
-    int lcfgpackage_compare_versions( const LCFGPackageStruct * pkg1, const LCFGPackageStruct * pkg2 );
-    int lcfgpackage_compare_archs( const LCFGPackageStruct * pkg1, const LCFGPackageStruct * pkg2 );
-    bint lcfgpackage_same_context( const LCFGPackageStruct * pkg1,  const LCFGPackageStruct * pkg2 );
-    int lcfgpackage_compare( const LCFGPackageStruct * pkg1, const LCFGPackageStruct * pkg2 )
-    bint lcfgpackage_equals( const LCFGPackageStruct * pkg1, const LCFGPackageStruct * pkg2 )
+    int lcfgpackage_compare_names( const LCFGPackageStruct * pkg1,
+                                   const LCFGPackageStruct * pkg2 );
+    int lcfgpackage_compare_versions( const LCFGPackageStruct * pkg1,
+                                      const LCFGPackageStruct * pkg2 );
+    int lcfgpackage_compare_archs( const LCFGPackageStruct * pkg1,
+                                   const LCFGPackageStruct * pkg2 );
+    bint lcfgpackage_same_context( const LCFGPackageStruct * pkg1,
+                                   const LCFGPackageStruct * pkg2 );
+    int lcfgpackage_compare( const LCFGPackageStruct * pkg1,
+                             const LCFGPackageStruct * pkg2 )
+    bint lcfgpackage_equals( const LCFGPackageStruct * pkg1,
+                             const LCFGPackageStruct * pkg2 )
 
     const char * default_architecture()
     int compare_vstrings( const char * v1, const char * v2 )
