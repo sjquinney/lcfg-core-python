@@ -138,13 +138,18 @@ cdef extern from "lcfg/packages.h":
 
     LCFGMergeRule lcfgpkglist_get_merge_rules( const LCFGPackageListStruct * pkglist );
 
-    bint lcfgpkglist_set_merge_rules( LCFGPackageListStruct * pkglist, LCFGMergeRule new_rules )
+    bint lcfgpkglist_set_merge_rules( LCFGPackageListStruct * pkglist,
+                                      LCFGMergeRule new_rules )
 
-    LCFGChange lcfgpkglist_merge_package( LCFGPackageListStruct * pkglist, LCFGPackageStruct * pkg, char ** msg )
+    LCFGChange lcfgpkglist_merge_package( LCFGPackageListStruct * pkglist,
+                                          LCFGPackageStruct * pkg, char ** msg )
 
-    LCFGChange lcfgpkglist_merge_list( LCFGPackageListStruct * pkglist1, const LCFGPackageListStruct * pkglist2, char ** msg )
+    LCFGChange lcfgpkglist_merge_list( LCFGPackageListStruct * pkglist1,
+                                       const LCFGPackageListStruct * pkglist2,
+                                       char ** msg )
 
-    bint lcfgpkglist_has_package( const LCFGPackageListStruct * pkglist, const char * name, const char * arch )
+    bint lcfgpkglist_has_package( const LCFGPackageListStruct * pkglist,
+                                  const char * name, const char * arch )
 
     LCFGPackageStruct * lcfgpkglist_first_package( const LCFGPackageListStruct * pkglist )
 
@@ -169,11 +174,19 @@ cdef extern from "lcfg/packages.h":
                                         LCFGOption options,
                                         char ** msg )
 
-    LCFGChange lcfgpkglist_from_debian_index( const char * filename, LCFGPackageListStruct ** result, LCFGOption options, char ** msg )
+    LCFGChange lcfgpkglist_from_debian_index( const char * filename,
+                                              LCFGPackageListStruct ** result,
+                                              LCFGOption options,
+                                              char ** msg )
 
-    LCFGChange lcfgpkglist_from_rpm_dir( const char * rpmdir, LCFGPackageListStruct ** result, char ** msg )
+    LCFGChange lcfgpkglist_from_rpm_dir( const char * rpmdir,
+                                         LCFGPackageListStruct ** result,
+                                         char ** msg )
 
-    LCFGChange lcfgpkglist_from_rpmlist( const char * filename, LCFGPackageListStruct ** result, LCFGOption options, char ** msg )
+    LCFGChange lcfgpkglist_from_rpmlist( const char * filename,
+                                         LCFGPackageListStruct ** result,
+                                         LCFGOption options,
+                                         char ** msg )
 
     bint lcfgpkglist_print( const LCFGPackageListStruct * pkglist,
                             const char * defarch,
@@ -199,6 +212,4 @@ cdef extern from "lcfg/packages.h":
 
     LCFGPackageIteratorStruct * lcfgpkgiter_new( LCFGPackageListStruct * pkgs )
     void lcfgpkgiter_destroy( LCFGPackageIteratorStruct * iterator )
-    void lcfgpkgiter_reset( LCFGPackageIteratorStruct * iterator )
-    bint lcfgpkgiter_has_next( LCFGPackageIteratorStruct * iterator )
     LCFGPackageStruct * lcfgpkgiter_next(LCFGPackageIteratorStruct * iterator)
