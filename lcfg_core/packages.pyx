@@ -530,6 +530,36 @@ cdef class LCFGPackage:
     cpdef bint is_valid(self):
         return c_pkgs.lcfgpackage_is_valid(self._pkg)
 
+    cpdef to_string(self, defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
+
+        if style in [LCFGPkgStyle.RPM,LCFGPkgStyle.DEB] and \
+           ( not self.has_version() or not self.has_release() ):
+            return RuntimeError("Package style requires version and release fields to be defined")
+
+        cdef char * c_defarch = NULL
+        if defarch is not None: c_defarch = defarch
+
+        cdef:
+            char ** buf_addr       = &(self.__str_buf)
+            size_t * buf_size_addr = &(self.__buf_size)
+            c_pkgs.LCFGOption options_value = int(options)
+            Py_ssize_t len
+            str result
+
+        len = c_pkgs.lcfgpackage_to_string( self._pkg, c_defarch,
+                                            style.value, options_value,
+                                            buf_addr, buf_size_addr );
+
+        if len < 0:
+            raise RuntimeError("Failed to stringify package")
+
+        result = self.__str_buf
+
+        return result
+
+    def __str__(self):
+        return self.to_string()
+
     def __dealloc__(self):
         c_pkgs.lcfgpackage_relinquish(self._pkg)
         PyMem_Free(self.__str_buf)
