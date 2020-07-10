@@ -25,14 +25,14 @@ class LCFGPkgStyle(IntFlag):
     EVAL = 5
     DEB  = 6
 
-class LCFGPkgPrefix:
+class LCFGPkgPrefix(Enum):
     NONE   = '\0'
     ADD    = '+'
     REMOVE = '-'
     UPDATE = '?'
     PIN    = '!'
     ANY    = '~'
-    MIN    = '>' 
+    MIN    = '>'
 
 class LCFGPkgListPK(IntFlag):
     NAME = 1
@@ -573,15 +573,19 @@ cdef class LCFGPackage:
 
         if self.has_prefix():
             as_c = c_pkgs.lcfgpackage_get_prefix(self._pkg)
-            if as_c != LCFGPkgPrefix.NONE:
+            if as_c != LCFGPkgPrefix.NONE.value[0]:
                 result = (<bytes>as_c).decode('UTF-8')
 
         return result
 
     @prefix.setter
-    def prefix(self, str value):
+    def prefix(self, value):
 
-        if is_empty(value) or value == LCFGPkgPrefix.NONE:
+        # Convert to string if necessary
+        if isinstance( value, LCFGPkgPrefix ):
+            value = value.value
+
+        if is_empty(value) or value == LCFGPkgPrefix.NONE.value:
             del(self.prefix)
             return
 
