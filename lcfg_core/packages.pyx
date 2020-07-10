@@ -138,7 +138,7 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid name '{value}'")
+            raise ValueError(f"Failed to set name to '{value}'")
 
     cpdef bint has_name(self):
         return c_pkgs.lcfgpackage_has_name( self._pkg )
@@ -172,7 +172,7 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid architecture '{value}'")
+            raise ValueError(f"Failed to set architecture to '{value}'")
 
     cpdef bint has_arch(self):
         return c_pkgs.lcfgpackage_has_arch( self._pkg )
@@ -194,6 +194,9 @@ cdef class LCFGPackage:
     @version.setter
     def version(self, value):
 
+        if value is None:
+            raise ValueError("Invalid version: empty string")
+
         # In case we get passed an integer
         value = str(value)
 
@@ -210,12 +213,13 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid version '{value}'")
+            raise ValueError(f"Failed to set version to '{value}'")
 
     cpdef bint has_version(self):
         return c_pkgs.lcfgpackage_has_version( self._pkg )
 
-    cpdef int epoch(self):
+    @property
+    def epoch(self):
         cdef int result = c_pkgs.lcfgpackage_get_epoch( self._pkg )
         return result
 
@@ -236,6 +240,9 @@ cdef class LCFGPackage:
     @release.setter
     def release(self, value):
 
+        if value is None:
+            raise ValueError("Invalid release: empty string")
+
         # In case we get passed an integer
         value = str(value)
 
@@ -252,10 +259,36 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid release '{value}'")
+            raise ValueError(f"Failed to set release to '{value}'")
 
     cpdef bint has_release(self):
         return c_pkgs.lcfgpackage_has_release( self._pkg )
+
+    @property
+    def full_version(self):
+        cdef:
+            str result = None
+            char * as_c
+
+        try:
+            as_c = c_pkgs.lcfgpackage_full_version(self._pkg)
+            if as_c != NULL:
+                result = as_c
+            else:
+                raise RuntimeError("Failed to get full version");
+        finally:
+            PyMem_Free(as_c)
+
+        return result
+
+    @property
+    def vra(self):
+
+        cdef str vra = self.full_version
+        if self.has_arch():
+            vra = '/'.join( (vra, self.arch) )
+
+        return vra;
 
     # flags
 
@@ -275,7 +308,7 @@ cdef class LCFGPackage:
     def flags(self, str value):
 
         if is_empty(value):
-            self.clear_flags()
+            del(self.flags)
             return
 
         as_bytes = value.encode('UTF-8')
@@ -295,17 +328,17 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid flags '{value}'")
+            raise ValueError(f"Failed to set flags to '{value}'")
 
     @flags.deleter
     def flags(self):
         self.clear_flags()
         return
 
-    cpdef bint has_flag(self, str flag):
+    cpdef has_flag(self, str flag):
 
-        if len(flag) != 1:
-            raise ValueError("Package flags are single characters")
+        if is_empty(flag) or len(flag) != 1:
+            raise ValueError(f"Flags are single characters")
 
         as_bytes = flag[0].encode('UTF-8')
         cdef char as_c = as_bytes[0]
@@ -318,16 +351,29 @@ cdef class LCFGPackage:
     cpdef clear_flags(self):
         cdef bint ok = c_pkgs.lcfgpackage_clear_flags( self._pkg )
         if not ok:
-            raise RuntimeError("Failed to clear package flags")
+            raise RuntimeError("Failed to clear flags")
         return
 
     cpdef add_flags(self,str value):
 
-        cdef char * as_c = value
+        if is_empty(value):
+            return
+
+        cdef:
+            object bad_flag
+            char flag
+            bytes as_bytes = value.encode('UTF-8')
+
+        for flag in as_bytes:
+            if not c_pkgs.lcfgpackage_valid_flag_chr(flag):
+                bad_flag = (<bytes>flag).decode('UTF-8')
+                raise ValueError(f"Invalid flag '{bad_flag}'")
+
+        cdef char * as_c = as_bytes
 
         cdef bint result = c_pkgs.lcfgpackage_add_flags( self._pkg, as_c )
         if not result:
-            raise ValueError("Failed to add package flags '{value}'")
+            raise ValueError(f"Failed to add flags '{value}'")
 
         return
 
@@ -347,6 +393,7 @@ cdef class LCFGPackage:
 
     @context.setter
     def context(self, str value):
+
         if is_empty(value):
             raise ValueError("Invalid context: empty string")
 
@@ -360,18 +407,24 @@ cdef class LCFGPackage:
 
         if not ok:
             PyMem_Free(c_copy)
-            raise ValueError(f"Invalid context '{value}'")
+            raise ValueError(f"Failed to set context to '{value}'")
 
     cpdef bint has_context(self):
         return c_pkgs.lcfgpackage_has_context( self._pkg )
 
     cpdef add_context(self,str value):
 
+        if is_empty(value):
+            raise ValueError("Invalid context: empty string")
+
         cdef char * as_c = value
+
+        if not c_pkgs.lcfgpackage_valid_context(as_c):
+            raise ValueError(f"Invalid context '{value}'")
 
         cdef bint result = c_pkgs.lcfgpackage_add_context( self._pkg, as_c )
         if not result:
-            raise ValueError("Failed to add package context '{value}'")
+            raise ValueError("Failed to add context '{value}'")
 
         return
 
@@ -388,7 +441,7 @@ cdef class LCFGPackage:
 
         if self.has_derivation():
             len = c_pkgs.lcfgpackage_get_derivation_as_string(self._pkg, LCFGOption.NONE.value, &as_c, &buf_size )
-            result = as_c[:len].decode('UTF-8')
+            result = (<bytes> as_c[:len]).decode('UTF-8')
 
         return result
 
@@ -402,7 +455,7 @@ cdef class LCFGPackage:
         cdef bint ok = c_pkgs.lcfgpackage_set_derivation_as_string( self._pkg, as_c )
 
         if not ok:
-            raise ValueError(f"Invalid derivation '{value}'")
+            raise ValueError(f"Failed to set derivation to '{value}'")
 
     cpdef bint has_derivation(self):
         return c_pkgs.lcfgpackage_has_derivation( self._pkg )
@@ -415,7 +468,7 @@ cdef class LCFGPackage:
 
         cdef bint ok = c_pkgs.lcfgpackage_add_derivation_string( self._pkg, as_c )
         if not ok:
-            raise ValueError("Failed to add package derivation '{value}'")
+            raise ValueError("Failed to add derivation '{value}'")
 
         return
 
@@ -425,7 +478,7 @@ cdef class LCFGPackage:
 
         cdef bint ok = c_pkgs.lcfgpackage_add_derivation_file_line( self._pkg, as_c, linenum )
         if not ok:
-            raise ValueError("Failed to add package derivation '{file}:{linenum}'")
+            raise ValueError("Failed to add derivation '{file}:{linenum}'")
 
         return
 
@@ -459,7 +512,7 @@ cdef class LCFGPackage:
         if not ok:
             PyMem_Free(c_copy)
             c_copy = NULL
-            raise ValueError(f"Invalid category '{value}'")
+            raise ValueError(f"Failed to set category to '{value}'")
 
     cpdef bint has_category(self):
         return c_pkgs.lcfgpackage_has_category( self._pkg )
@@ -483,7 +536,7 @@ cdef class LCFGPackage:
     def prefix(self, str value):
 
         if is_empty(value) or value == LCFGPkgPrefix.NONE:
-            self.clear_prefix()
+            del(self.prefix)
             return
 
         if len(value) != 1:
@@ -497,7 +550,7 @@ cdef class LCFGPackage:
         cdef bint ok = c_pkgs.lcfgpackage_set_prefix( self._pkg, as_c[0] )
 
         if not ok:
-            raise ValueError(f"Invalid prefix '{value}'")
+            raise ValueError(f"Failed to set prefix to '{value}'")
 
     @prefix.deleter
     def prefix(self):
@@ -510,7 +563,7 @@ cdef class LCFGPackage:
     cpdef clear_prefix(self):
         cdef bint ok = c_pkgs.lcfgpackage_clear_prefix( self._pkg )
         if not ok:
-            raise RuntimeError("Failed to clear package prefix")
+            raise RuntimeError("Failed to clear prefix")
         return
 
     @property
@@ -521,7 +574,7 @@ cdef class LCFGPackage:
     def priority(self, int value):
         cdef bint ok = c_pkgs.lcfgpackage_set_priority(self._pkg, value)
         if not ok:
-            raise ValueError(f"Invalid priority: '{value}'")
+            raise ValueError(f"Failed to set priority to '{value}'")
         return
 
     cpdef bint is_active(self):
