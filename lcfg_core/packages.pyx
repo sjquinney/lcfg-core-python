@@ -266,6 +266,9 @@ cdef class LCFGPackage:
         cdef int result = c_pkgs.lcfgpackage_get_epoch( self._pkg )
         return result
 
+    def has_epoch(self):
+        return self.has_version() and ':' in self.version
+
     # release
 
     @property

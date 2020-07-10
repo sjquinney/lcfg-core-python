@@ -93,8 +93,10 @@ def test_package_version():
     assert p2.full_version == "3"
     assert p2.vra == "3"
 
+    assert not p2.has_epoch()
     assert p2.epoch == 0
     p2.version = "1:10"
+    assert p2.has_epoch()
     assert p2.epoch == 1
 
     assert p2.full_version == "1:10"
