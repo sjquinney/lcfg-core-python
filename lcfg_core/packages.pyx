@@ -633,7 +633,7 @@ cdef class LCFGPackage:
     cpdef bint is_valid(self):
         return c_pkgs.lcfgpackage_is_valid(self._pkg)
 
-    cpdef to_string(self, defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
+    cpdef to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
 
         if style in [LCFGPkgStyle.RPM,LCFGPkgStyle.DEB] and \
            ( not self.has_version() or not self.has_release() ):
@@ -659,6 +659,26 @@ cdef class LCFGPackage:
         result = self.__str_buf
 
         return result
+
+    # Convenience wrapper functions
+
+    def to_spec(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.SPEC, defarch=defarch, options=options)
+
+    def to_cpp(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.CPP, defarch=defarch, options=options)
+
+    def to_summary(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.SUMMARY, defarch=defarch, options=options)
+
+    def to_xml(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.XML, defarch=defarch, options=options)
+
+    def to_rpm_filename(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.RPM, defarch=defarch, options=options)
+
+    def to_deb_filename(self, str defarch=None, options=LCFGOption.NONE):
+        return self.to_string( style=LCFGPkgStyle.DEB, defarch=defarch, options=options)
 
     def __str__(self):
         return self.to_string()
