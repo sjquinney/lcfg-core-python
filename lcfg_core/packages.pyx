@@ -76,10 +76,10 @@ cdef class LCFGPackage:
         char * __str_buf
         size_t __buf_size
 
-    def __init__( self, **kwargs ):
+    def __init__( self, spec=None, style=None, **kwargs ):
         self.update(**kwargs)
 
-    def __cinit__( self, full_init=True, **kwargs ):
+    def __cinit__( self, spec=None, style=None, full_init=True, **kwargs ):
 
         # For speed a buffer is maintained which can be reused for
         # various stringification tasks.
@@ -91,11 +91,54 @@ cdef class LCFGPackage:
 
         if not full_init: return
 
-        self._pkg = c_pkgs.lcfgpackage_new()
-        if self._pkg == NULL:
-            raise RuntimeError("Failed to create new package")
+        # Create a new empty package
+        if spec is None:
+            self._pkg = c_pkgs.lcfgpackage_new()
+            if self._pkg == NULL:
+                raise RuntimeError("Failed to create new package")
+            return
+
+        # Otherwise - Parse an input string
+
+        if style is None:
+            if spec.endswith('.rpm'):
+                style = LCFGPkgStyle.RPM
+            elif spec.endswith('.deb'):
+                style = LCFGPkgStyle.DEB
+            else:
+                style = LCFGPkgStyle.SPEC
+
+        cdef:
+            str err_msg = 'unknown error'
+            char * msg = NULL
+            c_pkgs.LCFGStatus status = LCFGStatus.ERROR.value
+            char * spec_as_c = spec
+
+        try:
+
+            if style == LCFGPkgStyle.SPEC:
+                status = c_pkgs.lcfgpackage_from_spec( spec_as_c, &self._pkg, &msg )
+            elif style == LCFGPkgStyle.RPM:
+                status = c_pkgs.lcfgpackage_from_rpm_filename( spec_as_c, &self._pkg, &msg )
+            else:
+                raise RuntimeError(f"No support for {style} parsing")
+
+            if status == LCFGStatus.ERROR.value or self._pkg == NULL:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError(f"Failed to parse specification: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
 
         return
+
+    @staticmethod
+    def from_rpm_filename( spec ):
+        return LCFGPackage( spec=spec, style=LCFGPkgStyle.RPM )
+
+    @staticmethod
+    def from_spec( spec ):
+        return LCFGPackage( spec=spec, style=LCFGPkgStyle.SPEC )
 
     @staticmethod
     cdef init_with_struct( c_pkgs.LCFGPackageStruct *pkg ):
