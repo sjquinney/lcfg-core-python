@@ -20,3 +20,15 @@ def test_pkg_to_spec(testspec):
     assert p.is_valid()
 
     assert p.to_spec(options=LCFGOption.NEW) == testspec['spec']
+
+    if 'rpm' in testspec and testspec['rpm']:
+        assert p.to_rpm_filename(defarch='amd64') == testspec['rpm']
+    else:
+        with pytest.raises(RuntimeError,match='Package style requires version and release fields to be defined'):
+            p.to_rpm_filename(defarch='amd64')
+
+    if 'deb' in testspec and testspec['deb']:
+        assert p.to_deb_filename(defarch='amd64') == testspec['deb']
+    else:
+        with pytest.raises(RuntimeError,match='Package style requires version and release fields to be defined'):
+            p.to_deb_filename(defarch='amd64')
