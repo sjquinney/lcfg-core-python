@@ -831,6 +831,9 @@ cdef class LCFGPackage:
     def __str__(self):
         return self.to_string()
 
+    def __bool__(self):
+        return self.is_valid()
+
     def __dealloc__(self):
         c_pkgs.lcfgpackage_relinquish(self._pkg)
         PyMem_Free(self.__str_buf)
