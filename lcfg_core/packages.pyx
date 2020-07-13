@@ -633,11 +633,11 @@ cdef class LCFGPackage:
     cpdef bint is_valid(self):
         return c_pkgs.lcfgpackage_is_valid(self._pkg)
 
-    cpdef to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
+    def to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
 
         if style in [LCFGPkgStyle.RPM,LCFGPkgStyle.DEB] and \
            ( not self.has_version() or not self.has_release() ):
-            return RuntimeError("Package style requires version and release fields to be defined")
+            raise RuntimeError("Package style requires version and release fields to be defined")
 
         cdef char * c_defarch = NULL
         if defarch is not None: c_defarch = defarch
