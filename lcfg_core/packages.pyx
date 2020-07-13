@@ -828,6 +828,19 @@ cdef class LCFGPackage:
     def to_deb_filename(self, str defarch=None, options=LCFGOption.NONE):
         return self.to_string( style=LCFGPkgStyle.DEB, defarch=defarch, options=options)
 
+    cpdef to_dict(self):
+        cdef:
+            dict result = {}
+            str attr
+            object value
+
+        for attr in self.fields:
+            value = getattr( self, attr )
+            if not is_empty(value):
+                result[attr] = value
+
+        return result
+
     def __str__(self):
         return self.to_string()
 
