@@ -186,6 +186,24 @@ cdef class LCFGPackage:
     cpdef bint has_name(self):
         return c_pkgs.lcfgpackage_has_name( self._pkg )
 
+    @property
+    def identifier(self):
+
+        cdef:
+            str result = None
+            char * as_c
+
+        try:
+            as_c = c_pkgs.lcfgpackage_id(self._pkg)
+            if as_c != NULL:
+                result = as_c
+            else:
+                raise RuntimeError("Failed to get identifier");
+        finally:
+            PyMem_Free(as_c)
+
+        return result
+
     # architecture
 
     @property
