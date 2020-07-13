@@ -792,7 +792,7 @@ cdef class LCFGPackage:
         cdef bint result = c_pkgs.lcfgpackage_compare(pkg1,pkg2) >= 0
         return result
 
-    def to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
+    cpdef to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
 
         if style in [LCFGPkgStyle.RPM,LCFGPkgStyle.DEB] and \
            ( not self.has_version() or not self.has_release() ):
