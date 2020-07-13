@@ -633,6 +633,73 @@ cdef class LCFGPackage:
     cpdef bint is_valid(self):
         return c_pkgs.lcfgpackage_is_valid(self._pkg)
 
+    @classmethod
+    def valid_name(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_name(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_arch(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_arch(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_version(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_version(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_release(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_release(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_prefix(cls, str value):
+        if len(value) != 1: return False
+
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_prefix(value_as_c[0])
+        return valid
+
+    @classmethod
+    def valid_flag(cls, str value):
+        if len(value) != 1: return False
+
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_flag_chr(value_as_c[0])
+        return valid
+
+    @classmethod
+    def valid_flags(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_flags(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_context(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_context(value_as_c)
+        return valid
+
+    @classmethod
+    def valid_category(cls, str value):
+        cdef char * value_as_c = value
+
+        cdef bint valid = c_pkgs.lcfgpackage_valid_category(value_as_c)
+        return valid
+
     def to_string(self, str defarch=None, style=LCFGPkgStyle.SPEC, options=LCFGOption.NONE):
 
         if style in [LCFGPkgStyle.RPM,LCFGPkgStyle.DEB] and \
