@@ -45,6 +45,17 @@ class LCFGPkgSourceType(Enum):
     RPMCFG  = 3
     DEBIDX  = 4
 
+class LCFGPkgFlag:
+    BOOTONLY   = 'b'
+    NOTONBOOT  = 'B'
+    SAVECONFIG = 'c'
+    NODEPS     = 'd'
+    FORCE      = 'f'
+    IGNORE     = 'i'
+    REBOOT     = 'r'
+    NOSCRIPTS  = 's'
+    NOTRIGGERS = 't'
+
 cpdef bint is_empty(object value):
     return value is None or value == ''
 
