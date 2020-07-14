@@ -862,3 +862,44 @@ cdef class LCFGPackage:
         c_pkgs.lcfgpackage_relinquish(self._pkg)
         PyMem_Free(self.__str_buf)
 
+cdef class LCFGPackageCollection:
+
+    def __len__(self):
+        return self.size
+
+    def __bool__(self):
+        return self.size > 0
+
+cdef class LCFGPackageList(LCFGPackageCollection):
+
+    cdef:
+        c_pkgs.LCFGPackageListStruct * _pkgs
+        char * __str_buf
+        size_t __buf_size
+
+    def __cinit__(self,full_init=True):
+        self.__str_buf = NULL
+        self.__buf_size = 0
+        self._pkgs == NULL
+
+        if full_init:
+            self._pkgs = c_pkgs.lcfgpkglist_new()
+            if self._pkgs == NULL:
+                raise RuntimeError("Failed to create empty package list")
+
+        return
+
+    @staticmethod
+    cdef init_with_struct(c_pkgs.LCFGPackageListStruct* pkgs):
+        cdef LCFGPackageList new_obj = LCFGPackageList(full_init=False)
+        new_obj._pkgs = pkgs
+
+        return new_obj
+
+    @property
+    def size(self):
+        return c_pkgs.lcfgpkglist_size(self._pkgs)
+
+    def __dealloc__(self):
+        c_pkgs.lcfgpkglist_relinquish(self._pkgs)
+        PyMem_Free(self.__str_buf)
