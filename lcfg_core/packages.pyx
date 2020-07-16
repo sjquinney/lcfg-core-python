@@ -918,6 +918,27 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
         return
 
+    def merge_package(self, LCFGPackage package):
+        cdef:
+            c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            change = c_pkgs.lcfgpkglist_merge_package( self._pkgs, pkg, &msg )
+
+            if change == LCFGChange.ERROR.value:
+                if msg != NULL:  err_msg = msg
+                raise RuntimeError("Failed to merge package: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+            result = LCFGChange(change)
+
+        return result
+
     def __dealloc__(self):
         c_pkgs.lcfgpkglist_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
@@ -970,6 +991,27 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             raise ValueError(f"Invalid merge rules {value}")
 
         return
+
+    def merge_package(self, LCFGPackage package):
+        cdef:
+            c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            change = c_pkgs.lcfgpkgset_merge_package( self._pkgs, pkg, &msg )
+
+            if change == LCFGChange.ERROR.value:
+                if msg != NULL:  err_msg = msg
+                raise RuntimeError("Failed to merge package: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+            result = LCFGChange(change)
+
+        return result
 
     def __dealloc__(self):
         c_pkgs.lcfgpkgset_relinquish(self._pkgs)
