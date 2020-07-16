@@ -11,6 +11,12 @@ cdef extern from "lcfg/packages.h":
     ctypedef struct LCFGPackageIteratorStruct "LCFGPackageIterator":
         pass
 
+    ctypedef struct LCFGPackageSetStruct "LCFGPackageSet":
+        pass
+
+    ctypedef struct LCFGPkgSetIteratorStruct "LCFGPkgSetIterator":
+        pass
+
     ctypedef unsigned int LCFGStatus
     ctypedef unsigned int LCFGChange
     ctypedef unsigned int LCFGOption
@@ -53,8 +59,8 @@ cdef extern from "lcfg/packages.h":
     bint lcfgpackage_add_flags( LCFGPackageStruct * pkg, const char * new_value )
 
     bint lcfgpackage_valid_prefix( char prefix )
-    bint lcfgpackage_has_prefix( const LCFGPackageStruct * pkg );
-    char lcfgpackage_get_prefix( const LCFGPackageStruct * pkg );
+    bint lcfgpackage_has_prefix( const LCFGPackageStruct * pkg )
+    char lcfgpackage_get_prefix( const LCFGPackageStruct * pkg )
     bint lcfgpackage_set_prefix( LCFGPackageStruct * pkg, char new_prefix )
     bint lcfgpackage_clear_prefix( LCFGPackageStruct * pkg )
 
@@ -101,13 +107,13 @@ cdef extern from "lcfg/packages.h":
     char * lcfgpackage_id( const LCFGPackageStruct * pkg )
 
     int lcfgpackage_compare_names( const LCFGPackageStruct * pkg1,
-                                   const LCFGPackageStruct * pkg2 );
+                                   const LCFGPackageStruct * pkg2 )
     int lcfgpackage_compare_versions( const LCFGPackageStruct * pkg1,
-                                      const LCFGPackageStruct * pkg2 );
+                                      const LCFGPackageStruct * pkg2 )
     int lcfgpackage_compare_archs( const LCFGPackageStruct * pkg1,
-                                   const LCFGPackageStruct * pkg2 );
+                                   const LCFGPackageStruct * pkg2 )
     bint lcfgpackage_same_context( const LCFGPackageStruct * pkg1,
-                                   const LCFGPackageStruct * pkg2 );
+                                   const LCFGPackageStruct * pkg2 )
     int lcfgpackage_compare( const LCFGPackageStruct * pkg1,
                              const LCFGPackageStruct * pkg2 )
     bint lcfgpackage_equals( const LCFGPackageStruct * pkg1,
@@ -130,13 +136,13 @@ cdef extern from "lcfg/packages.h":
                                       const char *fmt, ... )
 
     LCFGPackageListStruct * lcfgpkglist_new()
-    void lcfgpkglist_acquire( LCFGPackageListStruct * pkglist );
+    void lcfgpkglist_acquire( LCFGPackageListStruct * pkglist )
     void lcfgpkglist_relinquish( LCFGPackageListStruct * pkglist )
 
     unsigned int lcfgpkglist_size(const LCFGPackageListStruct * pkglist )
     bint lcfgpkglist_is_empty(const LCFGPackageListStruct * pkglist )
 
-    LCFGMergeRule lcfgpkglist_get_merge_rules( const LCFGPackageListStruct * pkglist );
+    LCFGMergeRule lcfgpkglist_get_merge_rules( const LCFGPackageListStruct * pkglist )
 
     bint lcfgpkglist_set_merge_rules( LCFGPackageListStruct * pkglist,
                                       LCFGMergeRule new_rules )
@@ -213,3 +219,97 @@ cdef extern from "lcfg/packages.h":
     LCFGPackageIteratorStruct * lcfgpkgiter_new( LCFGPackageListStruct * pkgs )
     void lcfgpkgiter_destroy( LCFGPackageIteratorStruct * iterator )
     LCFGPackageStruct * lcfgpkgiter_next(LCFGPackageIteratorStruct * iterator)
+
+    LCFGPackageSetStruct * lcfgpkgset_new()
+
+    void lcfgpkgset_acquire(LCFGPackageSetStruct * pkgset)
+    void lcfgpkgset_relinquish( LCFGPackageSetStruct * pkgset )
+
+    bint lcfgpkgset_set_merge_rules( LCFGPackageSetStruct * pkgset,
+                                     LCFGMergeRule new_rules )
+
+    LCFGMergeRule lcfgpkgset_get_merge_rules( const LCFGPackageSetStruct * pkgset )
+
+    LCFGChange lcfgpkgset_merge_package( LCFGPackageSetStruct * pkgset,
+                                         LCFGPackageStruct * new_pkg,
+                                         char ** msg )
+
+    LCFGChange lcfgpkgset_merge_list( LCFGPackageSetStruct * pkgset,
+                                      const LCFGPackageListStruct * pkglist,
+                                      char ** msg )
+
+    LCFGChange lcfgpkgset_merge_set( LCFGPackageSetStruct * pkgset1,
+                                     const LCFGPackageSetStruct * pkgset2,
+                                     char ** msg )
+
+    LCFGPackageListStruct * lcfgpkgset_find_list( const LCFGPackageSetStruct * pkgset,
+                                            const char * want_name )
+
+    LCFGPackageStruct * lcfgpkgset_find_package( const LCFGPackageSetStruct * pkgset,
+                                           const char * want_name,
+                                           const char * want_arch )
+
+    bint lcfgpkgset_has_package( const LCFGPackageSetStruct * pkgset,
+                                 const char * want_name,
+                                 const char * want_arch )
+
+    bint lcfgpkgset_print( const LCFGPackageSetStruct * pkgset,
+                           const char * defarch,
+                           const char * base,
+                           LCFGPkgStyle style,
+                           LCFGOption options,
+                           FILE * out )
+
+    LCFGStatus lcfgpkgset_from_rpmlist( const char * filename,
+                                         LCFGPackageSetStruct ** result,
+                                         LCFGOption options,
+                                         char ** msg )
+
+    LCFGStatus lcfgpkgset_from_rpm_dir( const char * rpmdir,
+                                        LCFGPackageSetStruct ** result,
+                                        char ** msg )
+
+    LCFGChange lcfgpkgset_to_rpmlist( LCFGPackageSetStruct * pkgset,
+                                      const char * defarch,
+                                      const char * base,
+                                      const char * filename,
+                                      time_t mtime,
+                                      char ** msg )
+
+    LCFGChange lcfgpkgset_from_pkgsfile( const char * filename,
+                                         LCFGPackageSetStruct ** result,
+                                         const char * defarch,
+                                         const char * macros_file,
+                                         char ** incpath,
+                                         LCFGOption options,
+                    				     char *** deps,
+                                         char ** msg)
+
+    LCFGChange lcfgpkgset_from_rpmcfg( const char * filename,
+    				   LCFGPackageSetStruct ** result,
+    				   const char * defarch,
+    				   LCFGOption options,
+    				   char ** msg )
+
+    LCFGChange lcfgpkgset_to_rpmcfg( LCFGPackageSetStruct * active,
+                                     LCFGPackageSetStruct * inactive,
+                                     const char * defarch,
+                                     const char * filename,
+                                     const char * rpminc,
+                                     time_t mtime,
+                                     char ** msg )
+
+    LCFGStatus lcfgpkgset_from_rpm_db( const char * rootdir,
+                                       LCFGPackageSetStruct ** result,
+                                       char ** msg )
+
+    LCFGChange lcfgpkgset_from_debian_index( const char * filename,
+                                             LCFGPackageSetStruct ** result,
+                                             LCFGOption options,
+                                             char ** msg )
+
+    LCFGPackageSetStruct * lcfgpkgset_match( const LCFGPackageSetStruct * pkgset,
+                                       const char * want_name,
+                                       const char * want_arch,
+                                       const char * want_ver,
+                                       const char * want_rel )
