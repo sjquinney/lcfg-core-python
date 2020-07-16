@@ -19,8 +19,12 @@ def test_pkgset_merge_package():
     assert change == LCFGChange.NONE
     assert s1.size == 1
 
+    p2 = LCFGPackage(name="bar")
+    s1 += p2
+    assert s1.size == 2
+
     # test attempted merge of invalid package (no name)
-    p2 = LCFGPackage()
+    invalid_pkg = LCFGPackage()
 
     with pytest.raises(RuntimeError,match="Failed to merge package: "):
-        change = s1.merge_package(p2)
+        change = s1.merge_package(invalid_pkg)

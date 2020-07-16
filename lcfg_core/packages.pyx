@@ -864,6 +864,20 @@ cdef class LCFGPackage:
 
 cdef class LCFGPackageCollection:
 
+    def merge(self, other):
+        if isinstance( other, LCFGPackage ):
+            return self.merge_package(other)
+        elif isinstance( other, LCFGPackageList ):
+            return self.merge_list(other)
+        elif isinstance( self, LCFGPackageSet ) and isinstance( other, LCFGPackageSet ):
+            return self.merge_set(other)
+        else:
+            raise TypeError(f"No support for merging {other!r}")
+
+    def __iadd__( self, other ):
+        self.merge(other)
+        return self
+
     def __len__(self):
         return self.size
 
@@ -920,18 +934,37 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
     def merge_package(self, LCFGPackage package not None):
         cdef:
-            c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
             result = LCFGChange.NONE
             c_pkgs.LCFGChange change = result.value
             char * msg = NULL
             str err_msg = 'unknown error'
 
         try:
-            change = c_pkgs.lcfgpkglist_merge_package( self._pkgs, pkg, &msg )
+            change = c_pkgs.lcfgpkglist_merge_package( self._pkgs, package._pkg, &msg )
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL:  err_msg = msg
                 raise RuntimeError("Failed to merge package: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+            result = LCFGChange(change)
+
+        return result
+
+    def merge_list(self, LCFGPackageList other not None):
+        cdef:
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            change = c_pkgs.lcfgpkglist_merge_list( self._pkgs, other._pkgs, &msg )
+
+            if change == LCFGChange.ERROR.value:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError("Failed to merge package list: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -994,18 +1027,57 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
     def merge_package(self, LCFGPackage package not None):
         cdef:
-            c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
             result = LCFGChange.NONE
             c_pkgs.LCFGChange change = result.value
             char * msg = NULL
             str err_msg = 'unknown error'
 
         try:
-            change = c_pkgs.lcfgpkgset_merge_package( self._pkgs, pkg, &msg )
+            change = c_pkgs.lcfgpkgset_merge_package( self._pkgs, package._pkg, &msg )
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL:  err_msg = msg
                 raise RuntimeError("Failed to merge package: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+            result = LCFGChange(change)
+
+        return result
+
+    def merge_list(self, LCFGPackageList other not None):
+        cdef:
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            change = c_pkgs.lcfgpkgset_merge_list( self._pkgs, other._pkgs, &msg )
+
+            if change == LCFGChange.ERROR.value:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError("Failed to merge package list: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+            result = LCFGChange(change)
+
+        return result
+
+    def merge_set(self, LCFGPackageSet other not None):
+        cdef:
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            change = c_pkgs.lcfgpkgset_merge_set( self._pkgs, other._pkgs, &msg )
+
+            if change == LCFGChange.ERROR.value:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError("Failed to merge package set: {err_msg}")
 
         finally:
             PyMem_Free(msg)
