@@ -900,6 +900,24 @@ cdef class LCFGPackageList(LCFGPackageCollection):
     def size(self):
         return c_pkgs.lcfgpkglist_size(self._pkgs)
 
+    cpdef bint is_empty(self):
+        return c_pkgs.lcfgpkglist_is_empty(self._pkgs)
+
+    @property
+    def merge_rules(self):
+        return c_pkgs.lcfgpkglist_get_merge_rules(self._pkgs)
+
+    @merge_rules.setter
+    def merge_rules(self, value):
+        # Allow use of LCFGMergeRule enum as well as ints
+        value = int(value)
+
+        cdef bint ok = c_pkgs.lcfgpkglist_set_merge_rules(self._pkgs,value)
+        if not ok:
+            raise ValueError(f"Invalid merge rules {value}")
+
+        return
+
     def __dealloc__(self):
         c_pkgs.lcfgpkglist_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
@@ -934,6 +952,24 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
     @property
     def size(self):
         return c_pkgs.lcfgpkgset_size(self._pkgs)
+
+    cpdef bint is_empty(self):
+        return c_pkgs.lcfgpkgset_is_empty(self._pkgs)
+
+    @property
+    def merge_rules(self):
+        return c_pkgs.lcfgpkgset_get_merge_rules(self._pkgs)
+
+    @merge_rules.setter
+    def merge_rules(self, value):
+        # Allow use of LCFGMergeRule enum as well as ints
+        value = int(value)
+
+        cdef bint ok = c_pkgs.lcfgpkgset_set_merge_rules(self._pkgs,value)
+        if not ok:
+            raise ValueError(f"Invalid merge rules {value}")
+
+        return
 
     def __dealloc__(self):
         c_pkgs.lcfgpkgset_relinquish(self._pkgs)
