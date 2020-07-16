@@ -729,63 +729,63 @@ cdef class LCFGPackage:
         cdef bint valid = c_pkgs.lcfgpackage_valid_category(value_as_c)
         return valid
 
-    cpdef int compare_names(self,LCFGPackage other):
+    def compare_names(self,LCFGPackage other not None):
         cdef:
             c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
             c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         return c_pkgs.lcfgpackage_compare_names(pkg1,pkg2)
 
-    cpdef int compare_versions(self,LCFGPackage other):
+    def compare_versions(self,LCFGPackage other not None):
         cdef:
             c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
             c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         return c_pkgs.lcfgpackage_compare_versions(pkg1,pkg2)
 
-    cpdef int compare_archs(self,LCFGPackage other):
+    def compare_archs(self,LCFGPackage other not None):
         cdef:
             c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
             c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         return c_pkgs.lcfgpackage_compare_archs(pkg1,pkg2)
 
-    cpdef int same_context(self,LCFGPackage other):
+    def same_context(self,LCFGPackage other not None):
         cdef:
             c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
             c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         return c_pkgs.lcfgpackage_same_context(pkg1,pkg2)
 
-    def __eq__(self,LCFGPackage other):
+    def __eq__(self,LCFGPackage other not None):
         cdef c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
         cdef c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         cdef bint result = c_pkgs.lcfgpackage_equals(pkg1,pkg2)
         return result
 
-    def __lt__(self,LCFGPackage other):
+    def __lt__(self,LCFGPackage other not None):
         cdef c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
         cdef c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         cdef bint result = c_pkgs.lcfgpackage_compare(pkg1,pkg2) < 0
         return result
 
-    def __le__(self,LCFGPackage other):
+    def __le__(self,LCFGPackage other not None):
         cdef c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
         cdef c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         cdef bint result = c_pkgs.lcfgpackage_compare(pkg1,pkg2) <= 0
         return result
 
-    def __gt__(self,LCFGPackage other):
+    def __gt__(self,LCFGPackage other not None):
         cdef c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
         cdef c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
         cdef bint result = c_pkgs.lcfgpackage_compare(pkg1,pkg2) > 0
         return result
 
-    def __ge__(self,LCFGPackage other):
+    def __ge__(self,LCFGPackage other not None):
         cdef c_pkgs.LCFGPackageStruct* pkg1 = self._pkg
         cdef c_pkgs.LCFGPackageStruct* pkg2 = other._pkg
 
@@ -918,7 +918,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
         return
 
-    def merge_package(self, LCFGPackage package):
+    def merge_package(self, LCFGPackage package not None):
         cdef:
             c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
             result = LCFGChange.NONE
@@ -992,7 +992,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
         return
 
-    def merge_package(self, LCFGPackage package):
+    def merge_package(self, LCFGPackage package not None):
         cdef:
             c_pkgs.LCFGPackageStruct *pkg = <c_pkgs.LCFGPackageStruct *>package._pkg
             result = LCFGChange.NONE
