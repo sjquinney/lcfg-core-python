@@ -225,6 +225,9 @@ cdef extern from "lcfg/packages.h":
     void lcfgpkgset_acquire(LCFGPackageSetStruct * pkgset)
     void lcfgpkgset_relinquish( LCFGPackageSetStruct * pkgset )
 
+    unsigned int lcfgpkgset_size(const LCFGPackageSetStruct * pkgset )
+    bint lcfgpkgset_is_empty(const LCFGPackageSetStruct * pkgset )
+
     bint lcfgpkgset_set_merge_rules( LCFGPackageSetStruct * pkgset,
                                      LCFGMergeRule new_rules )
 
