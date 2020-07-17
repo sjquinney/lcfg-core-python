@@ -48,6 +48,7 @@ class LCFGPkgSourceType(Enum):
     RPMDIR  = 2
     RPMCFG  = 3
     DEBIDX  = 4
+    RPMDB   = 5
 
 class LCFGPkgFlag:
     BOOTONLY   = 'b'
@@ -887,6 +888,10 @@ cdef class LCFGPackageCollection:
         return cls.from_source( source, source_type=LCFGPkgSourceType.RPMDIR )
 
     @classmethod
+    def from_rpm_db( cls, source ):
+        return cls.from_source( source, source_type=LCFGPkgSourceType.RPMDB )
+
+    @classmethod
     def from_debian_index( cls, source, options=LCFGOption.NONE):
         return cls.from_source( source, source_type=LCFGPkgSourceType.DEBIDX,
                                 options=options)
@@ -1335,6 +1340,8 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
                 status = c_pkgs.lcfgpkgset_from_rpm_dir( c_filename, &pkgs, &msg )
             elif source_type == LCFGPkgSourceType.RPMCFG:
                 status = c_pkgs.lcfgpkgset_from_rpmcfg( c_filename, &pkgs, c_defarch, options, &msg )
+            elif source_type == LCFGPkgSourceType.RPMDB:
+                status = c_pkgs.lcfgpkgset_from_rpm_db( c_filename, &pkgs, &msg )
             elif source_type == LCFGPkgSourceType.DEBIDX:
                 status = c_pkgs.lcfgpkgset_from_debian_index( c_filename, &pkgs, options, &msg )
             else:
