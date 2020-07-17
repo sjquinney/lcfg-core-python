@@ -868,6 +868,10 @@ cdef class LCFGPackage:
 
 cdef class LCFGPackageCollection:
 
+    def __init__( self, merge_rules=None, **kwargs ):
+        if merge_rules is not None:
+            self.merge_rules = merge_rules
+
     @classmethod
     def from_rpmlist( cls, source, options=LCFGOption.NONE):
         return cls.from_source( source, source_type=LCFGPkgSourceType.RPMLIST,
@@ -998,7 +1002,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
         char * __str_buf
         size_t __buf_size
 
-    def __cinit__(self,full_init=True):
+    def __cinit__( self, full_init=True, **kwargs ):
         self.__str_buf = NULL
         self.__buf_size = 0
         self._pkgs == NULL
@@ -1292,7 +1296,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
         char * __str_buf
         size_t __buf_size
 
-    def __cinit__(self,full_init=True):
+    def __cinit__( self, full_init=True, **kwargs ):
         self.__str_buf = NULL
         self.__buf_size = 0
         self._pkgs == NULL
