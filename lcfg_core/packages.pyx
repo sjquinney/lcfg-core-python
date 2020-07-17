@@ -929,17 +929,17 @@ cdef class LCFGPackageCollection:
         yaml = YAML()
         yaml.explicit_start = True
 
-        if style == 'dict' or style == 'hash':
-            data = self.to_dict()
-        else:
-            data = self.to_list()
-
         # Create temporary file in same directory to allow for renaming
 
         if isinstance( filename, str ):
             filename = Path(filename)
 
         temp_file = NamedTemporaryFile( dir=filename.parent, suffix='.yaml' )
+
+        if style == 'dict' or style == 'hash':
+            data = self.to_dict()
+        else:
+            data = self.to_list()
 
         yaml.dump( data, temp_file )
 
