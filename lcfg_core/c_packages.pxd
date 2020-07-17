@@ -316,3 +316,7 @@ cdef extern from "lcfg/packages.h":
                                        const char * want_arch,
                                        const char * want_ver,
                                        const char * want_rel )
+
+    LCFGPkgSetIteratorStruct * lcfgpkgsetiter_new(LCFGPackageSetStruct * pkgset)
+    void lcfgpkgsetiter_destroy( LCFGPkgSetIteratorStruct * iterator )
+    LCFGPackageStruct * lcfgpkgsetiter_next(LCFGPkgSetIteratorStruct * iterator)

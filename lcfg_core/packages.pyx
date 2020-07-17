@@ -1219,6 +1219,9 @@ cdef class LCFGPackageList(LCFGPackageCollection):
     cpdef sort(self):
         c_pkgs.lcfgpkglist_sort(self._pkgs)
 
+    def __iter__(self):
+        return LCFGPackageListIterator(self)
+
     def __dealloc__(self):
         c_pkgs.lcfgpkglist_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
@@ -1527,6 +1530,60 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
         return
 
+    def __iter__(self):
+        return LCFGPackageSetIterator(self)
+
     def __dealloc__(self):
         c_pkgs.lcfgpkgset_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
+
+cdef class LCFGPackageListIterator:
+    cdef c_pkgs.LCFGPackageIteratorStruct *_iter
+
+    def __cinit__(self,LCFGPackageList coll):
+        self._iter = c_pkgs.lcfgpkgiter_new(coll._pkgs)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+
+        cdef c_pkgs.LCFGPackageStruct *pkg = c_pkgs.lcfgpkgiter_next(self._iter)
+
+        if pkg == NULL: raise StopIteration
+
+        cdef LCFGPackage result = None
+
+        c_pkgs.lcfgpackage_acquire(pkg)
+        result = LCFGPackage.init_with_struct(pkg)
+
+        return result
+
+    def __dealloc__(self):
+        c_pkgs.lcfgpkgiter_destroy(self._iter)
+
+
+cdef class LCFGPackageSetIterator:
+    cdef c_pkgs.LCFGPkgSetIteratorStruct *_iter
+
+    def __cinit__(self,LCFGPackageSet coll):
+        self._iter = c_pkgs.lcfgpkgsetiter_new(coll._pkgs)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+
+        cdef c_pkgs.LCFGPackageStruct *pkg = c_pkgs.lcfgpkgsetiter_next(self._iter)
+
+        if pkg == NULL: raise StopIteration
+
+        cdef LCFGPackage result = None
+
+        c_pkgs.lcfgpackage_acquire(pkg)
+        result = LCFGPackage.init_with_struct(pkg)
+
+        return result
+
+    def __dealloc__(self):
+        c_pkgs.lcfgpkgsetiter_destroy(self._iter)
