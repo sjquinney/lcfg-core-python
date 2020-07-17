@@ -988,6 +988,27 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
         return result
 
+    def match(self, str name=None, str arch=None, str version=None, str release=None):
+
+        cdef:
+            const char * c_name    = NULL
+            const char * c_arch    = NULL
+            const char * c_version = NULL
+            const char * c_release = NULL
+            c_pkgs.LCFGPackageListStruct * matches = NULL
+            LCFGPackageList result = None
+
+        if name: c_name = name
+        if arch: c_arch = arch
+        if version: c_version = version
+        if release: c_release = release
+
+        matches = c_pkgs.lcfgpkglist_match( self._pkgs, c_name, c_arch, c_version, c_release )
+        if matches != NULL:
+            result = LCFGPackageList.init_with_struct(matches)
+
+        return result
+
     def merge_package(self, LCFGPackage package not None):
         cdef:
             result = LCFGChange.NONE
@@ -1104,6 +1125,27 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
         if pkg != NULL:
             c_pkgs.lcfgpackage_acquire(pkg)
             result = LCFGPackage.init_with_struct(pkg)
+
+        return result
+
+    def match(self, str name=None, str arch=None, str version=None, str release=None):
+
+        cdef:
+            const char * c_name    = NULL
+            const char * c_arch    = NULL
+            const char * c_version = NULL
+            const char * c_release = NULL
+            c_pkgs.LCFGPackageSetStruct * matches = NULL
+            LCFGPackageSet result = None
+
+        if name: c_name = name
+        if arch: c_arch = arch
+        if version: c_version = version
+        if release: c_release = release
+
+        matches = c_pkgs.lcfgpkgset_match( self._pkgs, c_name, c_arch, c_version, c_release )
+        if matches != NULL:
+            result = LCFGPackageSet.init_with_struct(matches)
 
         return result
 
