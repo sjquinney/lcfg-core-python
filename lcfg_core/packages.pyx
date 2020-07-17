@@ -504,7 +504,7 @@ cdef class LCFGPackage:
 
         cdef bint result = c_pkgs.lcfgpackage_add_context( self._pkg, as_c )
         if not result:
-            raise ValueError("Failed to add context '{value}'")
+            raise ValueError(f"Failed to add context '{value}'")
 
         return
 
@@ -548,7 +548,7 @@ cdef class LCFGPackage:
 
         cdef bint ok = c_pkgs.lcfgpackage_add_derivation_string( self._pkg, as_c )
         if not ok:
-            raise ValueError("Failed to add derivation '{value}'")
+            raise ValueError(f"Failed to add derivation '{value}'")
 
         return
 
@@ -558,7 +558,7 @@ cdef class LCFGPackage:
 
         cdef bint ok = c_pkgs.lcfgpackage_add_derivation_file_line( self._pkg, as_c, linenum )
         if not ok:
-            raise ValueError("Failed to add derivation '{file}:{linenum}'")
+            raise ValueError(f"Failed to add derivation '{file}:{linenum}'")
 
         return
 
@@ -1144,7 +1144,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL:  err_msg = msg
-                raise RuntimeError("Failed to merge package: {err_msg}")
+                raise RuntimeError(f"Failed to merge package: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1164,7 +1164,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL: err_msg = msg
-                raise RuntimeError("Failed to merge package list: {err_msg}")
+                raise RuntimeError(f"Failed to merge package list: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1200,7 +1200,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
             if result == LCFGChange.ERROR:
                 if msg != NULL: err_msg = msg
 
-                raise RuntimeError("Failed to write rpmlist file: {err_msg}")
+                raise RuntimeError(f"Failed to write rpmlist file: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1238,7 +1238,7 @@ cdef class LCFGPackageList(LCFGPackageCollection):
             if result == LCFGChange.ERROR:
                 if msg != NULL: err_msg = msg
 
-                raise RuntimeError("Failed to write rpmcfg file: {err_msg}")
+                raise RuntimeError(f"Failed to write rpmcfg file: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1440,7 +1440,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL:  err_msg = msg
-                raise RuntimeError("Failed to merge package: {err_msg}")
+                raise RuntimeError(f"Failed to merge package: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1460,7 +1460,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL: err_msg = msg
-                raise RuntimeError("Failed to merge package list: {err_msg}")
+                raise RuntimeError(f"Failed to merge package list: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1480,7 +1480,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
 
             if change == LCFGChange.ERROR.value:
                 if msg != NULL: err_msg = msg
-                raise RuntimeError("Failed to merge package set: {err_msg}")
+                raise RuntimeError(f"Failed to merge package set: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1516,7 +1516,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             if result == LCFGChange.ERROR:
                 if msg != NULL: err_msg = msg
 
-                raise RuntimeError("Failed to write rpmlist file: {err_msg}")
+                raise RuntimeError(f"Failed to write rpmlist file: {err_msg}")
 
         finally:
             PyMem_Free(msg)
@@ -1554,7 +1554,7 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             if result == LCFGChange.ERROR:
                 if msg != NULL: err_msg = msg
 
-                raise RuntimeError("Failed to write rpmcfg file: {err_msg}")
+                raise RuntimeError(f"Failed to write rpmcfg file: {err_msg}")
 
         finally:
             PyMem_Free(msg)
