@@ -2,7 +2,11 @@
 
 import collections.abc
 from datetime import datetime
+import filecmp
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 import sys
+import os
 
 cimport lcfg_core.c_packages as c_pkgs
 
@@ -892,6 +896,60 @@ cdef class LCFGPackageCollection:
             return self.merge_set(other)
         else:
             raise TypeError(f"No support for merging {other!r}")
+
+    def to_dict(self):
+        cdef:
+           LCFGPackage pkg
+           result = {}
+           str pkg_name
+
+        for pkg in self:
+            pkg_name = pkg.name
+            if pkg_name not in result:
+                result[pkg_name] = {}
+            result[pkg_name][pkg.vra()] = pkg.to_dict()
+
+        return result
+
+    def to_list(self):
+        cdef:
+           LCFGPackage pkg
+           result = []
+           str pkg_name
+
+        for pkg in sorted(self):
+            result.append( pkg.to_dict() )
+
+        return result
+
+    def to_yaml(self, filename, style='list'):
+
+        from ruamel.yaml import YAML
+
+        yaml = YAML()
+        yaml.explicit_start = True
+
+        if style == 'dict' or style == 'hash':
+            data = self.to_dict()
+        else:
+            data = self.to_list()
+
+        # Create temporary file in same directory to allow for renaming
+
+        if isinstance( filename, str ):
+            filename = Path(filename)
+
+        temp_file = NamedTemporaryFile( dir=filename.parent, suffix='.yaml' )
+
+        yaml.dump( data, temp_file )
+
+        if not filename.exists() or not filecmp.cmp( filename, temp_file.name ):
+            os.link( temp_file.name, filename )
+            result = LCFGChange.MODIFIED
+        else:
+            result = LCFGChange.NONE
+
+        return result
 
     def __iadd__( self, other ):
         self.merge(other)
