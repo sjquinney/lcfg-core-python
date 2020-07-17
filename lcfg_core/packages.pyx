@@ -878,6 +878,36 @@ cdef class LCFGPackageCollection:
         self.merge(other)
         return self
 
+    def __contains__(self,key):
+
+        if isinstance(key, str):
+            name = key
+            arch = '*'
+        elif isinstance(key, collections.abc.Sequence):
+            name = key[0]
+            arch = key[1]
+        else:
+            raise TypeError(f"Invalid key '{key}'")
+
+        return self.has_package(name,arch)
+
+    def __getitem__(self,key):
+
+        if isinstance(key, str):
+            name = key
+            arch = '*'
+        elif isinstance(key, collections.abc.Sequence):
+            name = key[0]
+            arch = key[1]
+        else:
+            raise TypeError(f"Invalid key '{key}'")
+
+        result = self.find_package(name,arch)
+        if result is None:
+            raise KeyError(f"Nothing found for key '{key}'")
+
+        return result
+
     def __len__(self):
         return self.size
 
@@ -931,6 +961,32 @@ cdef class LCFGPackageList(LCFGPackageCollection):
             raise ValueError(f"Invalid merge rules {value}")
 
         return
+
+    def has_package(self, str name, str arch=None):
+        cdef:
+            const char * c_name = name
+            const char * c_arch = NULL
+
+        if arch is not None: c_arch = arch
+
+        return c_pkgs.lcfgpkglist_has_package( self._pkgs, c_name, c_arch )
+
+    def find_package(self, str name, str arch=None):
+
+        cdef:
+            const char * c_name = name
+            const char * c_arch = NULL
+            c_pkgs.LCFGPackageStruct * pkg = NULL
+            LCFGPackage result = None
+
+        if arch is not None: c_arch  = arch
+
+        pkg = c_pkgs.lcfgpkglist_find_package( self._pkgs, c_name, c_arch )
+        if pkg != NULL:
+            c_pkgs.lcfgpackage_acquire(pkg)
+            result = LCFGPackage.init_with_struct(pkg)
+
+        return result
 
     def merge_package(self, LCFGPackage package not None):
         cdef:
@@ -1024,6 +1080,32 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             raise ValueError(f"Invalid merge rules {value}")
 
         return
+
+    def has_package(self, str name, str arch=None):
+        cdef:
+            const char * c_name = name
+            const char * c_arch = NULL
+
+        if arch is not None: c_arch = arch
+
+        return c_pkgs.lcfgpkgset_has_package( self._pkgs, c_name, c_arch )
+
+    def find_package(self, str name, str arch=None):
+
+        cdef:
+            const char * c_name = name
+            const char * c_arch = NULL
+            c_pkgs.LCFGPackageStruct * pkg = NULL
+            LCFGPackage result = None
+
+        if arch is not None: c_arch  = arch
+
+        pkg = c_pkgs.lcfgpkgset_find_package( self._pkgs, c_name, c_arch )
+        if pkg != NULL:
+            c_pkgs.lcfgpackage_acquire(pkg)
+            result = LCFGPackage.init_with_struct(pkg)
+
+        return result
 
     def merge_package(self, LCFGPackage package not None):
         cdef:
