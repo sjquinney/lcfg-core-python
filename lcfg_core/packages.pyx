@@ -864,6 +864,25 @@ cdef class LCFGPackage:
 
 cdef class LCFGPackageCollection:
 
+    @classmethod
+    def from_rpmlist( cls, source, options=LCFGOption.NONE):
+        return cls.from_source( source, source_type=LCFGPkgSourceType.RPMLIST,
+                                options=options)
+
+    @classmethod
+    def from_rpmcfg( cls, source, defarch=None, options=LCFGOption.NONE):
+        return cls.from_source( source, source_type=LCFGPkgSourceType.RPMCFG,
+                                defarch=defarch, options=options)
+
+    @classmethod
+    def from_rpm_dir( cls, source ):
+        return cls.from_source( source, source_type=LCFGPkgSourceType.RPMDIR )
+
+    @classmethod
+    def from_debian_index( cls, source, options=LCFGOption.NONE):
+        return cls.from_source( source, source_type=LCFGPkgSourceType.DEBIDX,
+                                options=options)
+
     def merge(self, other):
         if isinstance( other, LCFGPackage ):
             return self.merge_package(other)
@@ -939,6 +958,43 @@ cdef class LCFGPackageList(LCFGPackageCollection):
         new_obj._pkgs = pkgs
 
         return new_obj
+
+    @classmethod
+    def from_source(cls, str source, source_type, str defarch=None, options=LCFGOption.NONE):
+        cdef:
+            c_pkgs.LCFGPackageListStruct * pkgs = NULL
+            LCFGPackageList result = None
+            c_pkgs.LCFGStatus status = LCFGStatus.ERROR.value
+            char * c_filename = source
+            char * c_defarch  = NULL
+            char * msg        = NULL
+            str err_msg = 'unknown error'
+
+        if defarch is not None: c_defarch = defarch
+
+        try:
+            if source_type == LCFGPkgSourceType.RPMLIST:
+                status = c_pkgs.lcfgpkglist_from_rpmlist( c_filename, &pkgs, options, &msg )
+            elif source_type == LCFGPkgSourceType.RPMDIR:
+                status = c_pkgs.lcfgpkglist_from_rpm_dir( c_filename, &pkgs, &msg )
+            elif source_type == LCFGPkgSourceType.RPMCFG:
+                status = c_pkgs.lcfgpkglist_from_rpmcfg( c_filename, &pkgs, c_defarch, options, &msg )
+            elif source_type == LCFGPkgSourceType.DEBIDX:
+                status = c_pkgs.lcfgpkglist_from_debian_index( c_filename, &pkgs, options, &msg )
+            else:
+                raise RuntimeError(f"No support for reading package information from '{source}' as type '{source_type}'")
+
+
+            if status != LCFGStatus.ERROR.value and pkgs != NULL:
+                result = LCFGPackageList.init_with_struct(pkgs)
+            else:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError(f"Failed to read package information from '{source}': {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+
+        return result
 
     @property
     def size(self):
@@ -1049,6 +1105,79 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
         return result
 
+    def to_rpmlist(self, str filename, str defarch=None, str base=None, mtime=None):
+
+        cdef:
+            const char * c_filename = filename
+            const char * c_defarch  = NULL
+            const char * c_base     = NULL
+            time_t c_mtime = 0
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        if defarch is not None: c_defarch = defarch
+        if base: c_base = base
+
+        if mtime is not None:
+            if isinstance(mtime,datetime):
+                c_mtime = int(mtime.timestamp())
+            else:
+                c_mtime = int(mtime)
+
+        try:
+            change = c_pkgs.lcfgpkglist_to_rpmlist( self._pkgs, c_defarch, c_base, c_filename, c_mtime, &msg )
+            result = LCFGChange(change)
+
+            if result == LCFGChange.ERROR:
+                if msg != NULL: err_msg = msg
+
+                raise RuntimeError("Failed to write rpmlist file: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+
+        return result
+
+    def to_rpmcfg(self, str filename, LCFGPackageList inactive=None, str defarch=None, str rpminc=None, mtime=None):
+
+        cdef:
+            c_pkgs.LCFGPackageListStruct *pkgs_active   = self._pkgs
+            c_pkgs.LCFGPackageListStruct *pkgs_inactive = NULL
+            const char * c_filename = filename
+            const char * c_defarch  = NULL
+            const char * c_rpminc   = NULL
+            time_t c_mtime = 0
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        if inactive: pkgs_inactive = inactive._pkgs
+        if defarch is not None: c_defarch = defarch
+        if rpminc: c_rpminc   = rpminc
+
+        if mtime is not None:
+            if isinstance(mtime,datetime):
+                c_mtime = int(mtime.timestamp())
+            else:
+                c_mtime = int(mtime)
+
+        try:
+            change = c_pkgs.lcfgpkglist_to_rpmcfg( pkgs_active, pkgs_inactive, c_defarch, c_filename, c_rpminc, c_mtime, &msg )
+            result = LCFGChange(change)
+
+            if result == LCFGChange.ERROR:
+                if msg != NULL: err_msg = msg
+
+                raise RuntimeError("Failed to write rpmcfg file: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+
+        return result
+
     def __dealloc__(self):
         c_pkgs.lcfgpkglist_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
@@ -1079,6 +1208,43 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
         new_obj._pkgs = pkgs
 
         return new_obj
+
+    @classmethod
+    def from_source(cls, str source, source_type, str defarch=None, options=LCFGOption.NONE):
+        cdef:
+            c_pkgs.LCFGPackageSetStruct * pkgs = NULL
+            LCFGPackageSet result = None
+            c_pkgs.LCFGStatus status = LCFGStatus.ERROR.value
+            char * c_filename = source
+            char * c_defarch  = NULL
+            char * msg        = NULL
+            str err_msg = 'unknown error'
+
+        if defarch is not None: c_defarch = defarch
+
+        try:
+            if source_type == LCFGPkgSourceType.RPMLIST:
+                status = c_pkgs.lcfgpkgset_from_rpmlist( c_filename, &pkgs, options, &msg )
+            elif source_type == LCFGPkgSourceType.RPMDIR:
+                status = c_pkgs.lcfgpkgset_from_rpm_dir( c_filename, &pkgs, &msg )
+            elif source_type == LCFGPkgSourceType.RPMCFG:
+                status = c_pkgs.lcfgpkgset_from_rpmcfg( c_filename, &pkgs, c_defarch, options, &msg )
+            elif source_type == LCFGPkgSourceType.DEBIDX:
+                status = c_pkgs.lcfgpkgset_from_debian_index( c_filename, &pkgs, options, &msg )
+            else:
+                raise RuntimeError(f"No support for reading package information from '{source}' as type '{source_type}'")
+
+
+            if status != LCFGStatus.ERROR.value and pkgs != NULL:
+                result = LCFGPackageSet.init_with_struct(pkgs)
+            else:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError(f"Failed to read package information from '{source}': {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+
+        return result
 
     @property
     def size(self):
@@ -1206,6 +1372,79 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
         finally:
             PyMem_Free(msg)
             result = LCFGChange(change)
+
+        return result
+
+    def to_rpmlist(self, str filename, str defarch=None, str base=None, mtime=None):
+
+        cdef:
+            const char * c_filename = filename
+            const char * c_defarch  = NULL
+            const char * c_base     = NULL
+            time_t c_mtime = 0
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        if defarch is not None: c_defarch = defarch
+        if base: c_base = base
+
+        if mtime is not None:
+            if isinstance(mtime,datetime):
+                c_mtime = int(mtime.timestamp())
+            else:
+                c_mtime = int(mtime)
+
+        try:
+            change = c_pkgs.lcfgpkgset_to_rpmlist( self._pkgs, c_defarch, c_base, c_filename, c_mtime, &msg )
+            result = LCFGChange(change)
+
+            if result == LCFGChange.ERROR:
+                if msg != NULL: err_msg = msg
+
+                raise RuntimeError("Failed to write rpmlist file: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
+
+        return result
+
+    def to_rpmcfg(self, str filename, LCFGPackageSet inactive=None, str defarch=None, str rpminc=None, mtime=None):
+
+        cdef:
+            c_pkgs.LCFGPackageSetStruct *pkgs_active   = self._pkgs
+            c_pkgs.LCFGPackageSetStruct *pkgs_inactive = NULL
+            const char * c_filename = filename
+            const char * c_defarch  = NULL
+            const char * c_rpminc   = NULL
+            time_t c_mtime = 0
+            result = LCFGChange.NONE
+            c_pkgs.LCFGChange change = result.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        if inactive: pkgs_inactive = inactive._pkgs
+        if defarch is not None: c_defarch = defarch
+        if rpminc: c_rpminc   = rpminc
+
+        if mtime is not None:
+            if isinstance(mtime,datetime):
+                c_mtime = int(mtime.timestamp())
+            else:
+                c_mtime = int(mtime)
+
+        try:
+            change = c_pkgs.lcfgpkgset_to_rpmcfg( pkgs_active, pkgs_inactive, c_defarch, c_filename, c_rpminc, c_mtime, &msg )
+            result = LCFGChange(change)
+
+            if result == LCFGChange.ERROR:
+                if msg != NULL: err_msg = msg
+
+                raise RuntimeError("Failed to write rpmcfg file: {err_msg}")
+
+        finally:
+            PyMem_Free(msg)
 
         return result
 
