@@ -1178,6 +1178,47 @@ cdef class LCFGPackageList(LCFGPackageCollection):
 
         return result
 
+    def print( self, file=sys.stdout,
+               str defarch=None, str base=None,
+               style=LCFGPkgStyle.SPEC,
+               options=LCFGOption.NONE ):
+        cdef:
+           int fd
+           FILE * out_stream = NULL
+           bint ok
+           c_pkgs.LCFGOption options_value = int(options)
+           c_pkgs.LCFGPkgStyle style_value = int(style)
+           const char * c_base    = NULL
+           const char * c_defarch = NULL
+
+        if base: c_base = base
+        if defarch is not None: c_defarch = defarch
+
+        try:
+            file.flush()
+
+            fd = PyObject_AsFileDescriptor(file)
+
+            out_stream = fdopen( fd, 'a' )
+            if out_stream == NULL:
+                raise RuntimeError("Failed to open file stream for writing")
+
+            ok = c_pkgs.lcfgpkglist_print( self._pkgs, c_defarch, c_base,
+                                           style_value, options_value,
+                                           out_stream )
+
+            fflush(out_stream)
+
+            if not ok:
+                raise RuntimeError("Failed to print")
+        except:
+            raise RuntimeError("Failed to print")
+
+        return
+
+    cpdef sort(self):
+        c_pkgs.lcfgpkglist_sort(self._pkgs)
+
     def __dealloc__(self):
         c_pkgs.lcfgpkglist_relinquish(self._pkgs)
         PyMem_Free(self.__str_buf)
@@ -1447,6 +1488,44 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             PyMem_Free(msg)
 
         return result
+
+    def print( self, file=sys.stdout,
+               str defarch=None, str base=None,
+               style=LCFGPkgStyle.SPEC,
+               options=LCFGOption.NONE ):
+        cdef:
+           int fd
+           FILE * out_stream = NULL
+           bint ok
+           c_pkgs.LCFGOption options_value = int(options)
+           c_pkgs.LCFGPkgStyle style_value = int(style)
+           const char * c_base    = NULL
+           const char * c_defarch = NULL
+
+        if base: c_base = base
+        if defarch is not None: c_defarch = defarch
+
+        try:
+            file.flush()
+
+            fd = PyObject_AsFileDescriptor(file)
+
+            out_stream = fdopen( fd, 'a' )
+            if out_stream == NULL:
+                raise RuntimeError("Failed to open file stream for writing")
+
+            ok = c_pkgs.lcfgpkgset_print( self._pkgs, c_defarch, c_base,
+                                          style_value, options_value,
+                                          out_stream )
+
+            fflush(out_stream)
+
+            if not ok:
+                raise RuntimeError("Failed to print")
+        except:
+            raise RuntimeError("Failed to print")
+
+        return
 
     def __dealloc__(self):
         c_pkgs.lcfgpkgset_relinquish(self._pkgs)
