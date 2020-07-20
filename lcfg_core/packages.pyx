@@ -1020,9 +1020,15 @@ cdef class LCFGPackageCollection:
 
     def __getitem__(self,key):
 
+        # Supports the Debian/apt style of name:arch being specified
+        # as a single string.
+
         if isinstance(key, str):
-            name = key
-            arch = '*'
+            if ':' in key:
+                ( name, arch ) = key.split( sep=':', maxsplit=2 )
+            else:
+                name = key
+                arch = '*'
         elif isinstance(key, collections.abc.Sequence):
             name = key[0]
             arch = key[1]
