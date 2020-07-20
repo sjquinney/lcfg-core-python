@@ -558,7 +558,7 @@ cdef class LCFGPackage:
 
         cdef bint ok = c_pkgs.lcfgpackage_add_derivation_file_line( self._pkg, as_c, linenum )
         if not ok:
-            raise ValueError(f"Failed to add derivation '{file}:{linenum}'")
+            raise ValueError(f"Failed to add derivation '{filename}:{linenum}'")
 
         return
 
@@ -930,6 +930,47 @@ cdef class LCFGPackageCollection:
             result.append( pkg.to_dict() )
 
         return result
+
+    @classmethod
+    def from_yaml( cls, filename, merge_rules=None ):
+
+        # Create temporary file in same directory to allow for renaming
+
+        if isinstance( filename, str ):
+            filename = Path(filename)
+
+        if isinstance( filename, Path ):
+            if not filename.is_file():
+                raise RuntimeError(f"YAML file '{filename}' does not exist")
+
+        from ruamel.yaml import YAML
+
+        yaml = YAML()
+
+        data = yaml.load(filename)
+
+        if merge_rules is None:
+            merge_rules = LCFGMergeRule.SQUASH_IDENTICAL
+
+        new_collection = cls(merge_rules=merge_rules)
+
+        cdef LCFGPackage pkg_obj
+        if isinstance( data, list ):
+            packages = (item for item in data )
+        elif isinstance( data, dict ):
+            packages = ( item for item in data.values )
+        else:
+            raise RuntimeError(f"No support for loading {data!r}")
+
+        for pkg in packages:
+            try:
+                pkg_dict = dict(pkg)
+                pkg_obj  = LCFGPackage(**pkg_dict)
+                new_collection.merge_package( pkg_obj )
+            except Exception as e:
+                print(f"Failed to import package '{pkg}': {e}", file=sys.stderr)
+
+        return new_collection
 
     def to_yaml(self, filename, style='list'):
 
