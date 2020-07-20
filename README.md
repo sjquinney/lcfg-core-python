@@ -49,9 +49,12 @@ the ruamel.yaml package.
 On Debian/Ubuntu for building the software you can install the
 dependencies as:
 
+```
 apt install python3-setuptools cython3 python3-dev build-essentials
+```
 
 For testing you need:
 
+```
 apt install python3-pytest python3-pytest-runner
-
+```
