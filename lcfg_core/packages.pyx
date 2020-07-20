@@ -1143,7 +1143,10 @@ cdef class LCFGPackageList(LCFGPackageCollection):
             c_pkgs.LCFGPackageStruct * pkg = NULL
             LCFGPackage result = None
 
-        if arch is not None: c_arch  = arch
+        if arch is None:
+            c_arch = "*" # Match any architecture
+        else:
+            c_arch = arch
 
         pkg = c_pkgs.lcfgpkglist_find_package( self._pkgs, c_name, c_arch )
         if pkg != NULL:
@@ -1439,7 +1442,10 @@ cdef class LCFGPackageSet(LCFGPackageCollection):
             c_pkgs.LCFGPackageStruct * pkg = NULL
             LCFGPackage result = None
 
-        if arch is not None: c_arch  = arch
+        if arch is None:
+            c_arch = "*" # Match any architecture
+        else:
+            c_arch = arch
 
         pkg = c_pkgs.lcfgpkgset_find_package( self._pkgs, c_name, c_arch )
         if pkg != NULL:
