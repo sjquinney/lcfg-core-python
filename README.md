@@ -2,14 +2,15 @@
 
 Python bindings for LCFG core libraries
 
-# Description
+## Description
 
 This project aims to provide a complete interface to the LCFG core
 libraries. However, currently it only supports working with package
 specifications and lists.
 
-# Synopsis
+## Synopsis
 
+```
  from lcfg_core.packages import LCFGPackage, LCFGPackageSet
 
  # Parse a package specification and add it to a package collection
@@ -23,8 +24,9 @@ specifications and lists.
 
  rpmlist = LCFGPackageSet.from_rpm_dir("/var/cache/packages/")
  rpmlist.to_rpmlist("/var/cache/packages/rpmlist")
+```
 
-# Requirements
+## Requirements
 
 For using the Python modules you will need the LCFG core
 libraries. For building the modules you will also need the development
