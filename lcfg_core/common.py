@@ -37,3 +37,6 @@ class LCFGMergeRule(IntFlag):
     USE_PRIORITY     =  4
     USE_PREFIX       =  8
     REPLACE          = 16
+
+def is_empty(value):
+    return value is None or value == ''

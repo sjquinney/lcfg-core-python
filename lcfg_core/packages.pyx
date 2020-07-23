@@ -14,7 +14,7 @@ from libc.time   cimport time_t
 from libc.stdio  cimport fdopen, FILE, fflush
 from libc.string cimport strdup
 
-from .common import LCFGStatus, LCFGChange, LCFGOption, LCFGMergeRule
+from .common import LCFGStatus, LCFGChange, LCFGOption, LCFGMergeRule, is_empty
 
 from cpython.mem cimport PyMem_Free
 from cpython.object cimport PyObject_AsFileDescriptor
@@ -60,9 +60,6 @@ class LCFGPkgFlag:
     REBOOT     = 'r'
     NOSCRIPTS  = 's'
     NOTRIGGERS = 't'
-
-cpdef bint is_empty(object value):
-    return value is None or value == ''
 
 cpdef str default_architecture():
     cdef:
