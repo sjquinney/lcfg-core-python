@@ -50,7 +50,7 @@ On Debian/Ubuntu for building the software you can install the
 dependencies as:
 
 ```
-apt install python3-setuptools cython3 python3-dev build-essentials
+apt install python3-setuptools cython3 python3-dev build-essentials python3-ruamel.yaml
 ```
 
 For testing you need:
