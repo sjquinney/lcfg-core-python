@@ -239,6 +239,142 @@ cdef class LCFGResource:
     cpdef bint has_value(self):
         return c_res.lcfgresource_has_value( self._res )
 
+    # context
+
+    @property
+    def context(self):
+        cdef:
+            str result = None
+            const char * as_c
+
+        if self.has_context():
+            as_c   = c_res.lcfgresource_get_context(self._res)
+            if as_c != NULL: result = as_c
+
+        return result
+
+    @context.setter
+    def context(self, str value):
+
+        if is_empty(value):
+            raise ValueError("Invalid context: empty string")
+
+        cdef char * as_c = value
+
+        if not c_res.lcfgresource_valid_context(as_c):
+            raise ValueError(f"Invalid context '{value}'")
+
+        cdef char * c_copy = strdup(as_c)
+        cdef bint ok = c_res.lcfgresource_set_context( self._res, c_copy )
+
+        if not ok:
+            PyMem_Free(c_copy)
+            raise ValueError(f"Failed to set context to '{value}'")
+
+    cpdef bint has_context(self):
+        return c_res.lcfgresource_has_context( self._res )
+
+    cpdef add_context(self,str value):
+
+        if is_empty(value):
+            raise ValueError("Invalid context: empty string")
+
+        cdef char * as_c = value
+
+        if not c_res.lcfgresource_valid_context(as_c):
+            raise ValueError(f"Invalid context '{value}'")
+
+        cdef bint result = c_res.lcfgresource_add_context( self._res, as_c )
+        if not result:
+            raise ValueError(f"Failed to add context '{value}'")
+
+        return
+
+    # derivation
+
+    @property
+    def derivation(self):
+
+        cdef:
+            str result = None
+            char * as_c = NULL
+            size_t buf_size = 0
+            Py_ssize_t len
+
+        if self.has_derivation():
+            len = c_res.lcfgresource_get_derivation_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
+            result = (<bytes> as_c[:len]).decode('UTF-8')
+
+        return result
+
+    @derivation.setter
+    def derivation(self, str value):
+        if is_empty(value):
+            raise ValueError("Invalid derivation: empty string")
+
+        cdef char * as_c = value
+
+        cdef bint ok = c_res.lcfgresource_set_derivation_as_string( self._res, as_c )
+
+        if not ok:
+            raise ValueError(f"Failed to set derivation to '{value}'")
+
+    cpdef bint has_derivation(self):
+        return c_res.lcfgresource_has_derivation( self._res )
+
+    cpdef add_derivation(self,str value):
+        if is_empty(value):
+            raise ValueError("Invalid derivation: empty string")
+
+        cdef char * as_c = value
+
+        cdef bint ok = c_res.lcfgresource_add_derivation_string( self._res, as_c )
+        if not ok:
+            raise ValueError(f"Failed to add derivation '{value}'")
+
+        return
+
+    cpdef add_derivation_file_line(self, str filename, int linenum):
+
+        cdef char * as_c = filename
+
+        cdef bint ok = c_res.lcfgresource_add_derivation_file_line( self._res, as_c, linenum )
+        if not ok:
+            raise ValueError(f"Failed to add derivation '{filename}:{linenum}'")
+
+        return
+
+    # comment
+
+    @property
+    def comment(self):
+        cdef:
+            str result = None
+            const char * as_c
+
+        if self.has_comment():
+            as_c   = c_res.lcfgresource_get_comment(self._res)
+            if as_c != NULL: result = as_c
+
+        return result
+
+    @comment.setter
+    def comment(self, str value):
+        if is_empty(value):
+            raise ValueError("Invalid comment: empty string")
+
+        cdef char * as_c = value
+        cdef char * c_copy = strdup(as_c)
+        cdef bint ok = c_res.lcfgresource_set_comment( self._res, c_copy )
+
+        if not ok:
+            PyMem_Free(c_copy)
+            c_copy = NULL
+            raise ValueError(f"Failed to set comment to '{value}'")
+
+    cpdef bint has_comment(self):
+        return c_res.lcfgresource_has_comment( self._res )
+
     def to_string(self, prefix=None, style=LCFGResourceStyle.SPEC, options=LCFGOption.NONE ):
 
         cdef char * c_prefix = NULL
