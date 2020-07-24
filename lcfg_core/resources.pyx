@@ -203,6 +203,9 @@ cdef class LCFGResource:
 
         return result
 
+    def v(self):
+        return self.value
+
     @value.setter
     def value(self, value):
         if value is None:
