@@ -375,6 +375,23 @@ cdef class LCFGResource:
     cpdef bint has_comment(self):
         return c_res.lcfgresource_has_comment( self._res )
 
+    @property
+    def priority(self):
+        return c_res.lcfgresource_get_priority(self._res)
+
+    @priority.setter
+    def priority(self, int value):
+        cdef bint ok = c_res.lcfgresource_set_priority(self._res, value)
+        if not ok:
+            raise ValueError(f"Failed to set priority to '{value}'")
+        return
+
+    cpdef bint is_active(self):
+        return c_res.lcfgresource_is_active(self._res)
+
+    cpdef bint is_valid(self):
+        return c_res.lcfgresource_is_valid(self._res)
+
     def to_string(self, prefix=None, style=LCFGResourceStyle.SPEC, options=LCFGOption.NONE ):
 
         cdef char * c_prefix = NULL
@@ -397,6 +414,9 @@ cdef class LCFGResource:
         result = self.__str_buf
 
         return result
+
+    def __bool__(self):
+        return self.is_true()
 
     def __str__(self):
         return self.to_string()
