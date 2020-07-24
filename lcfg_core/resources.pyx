@@ -25,6 +25,21 @@ class LCFGResourceStyle(IntFlag):
     EXPORT  = 3
     VALUE   = 4
 
+def _stringify_value( value ):
+
+    if not isinstance( value, str ) and \
+       isinstance( value, collections.abc.Sequence ):
+        new_value = ' '.join(value)
+    elif isinstance( value, bool ):
+        if value:
+            new_value = "yes"
+        else:
+            new_value = "no"
+    else:
+        new_value = str(value)
+
+    return new_value
+
 cdef class LCFGResource:
     fields = [ 'name', 'type', 'value',\
                'template', 'comment',\
@@ -194,21 +209,8 @@ cdef class LCFGResource:
             del(self.value)
             return
 
-        cdef str new_value
-
-        if not isinstance( value, str ) and \
-           isinstance( value, collections.abc.Sequence ) and \
-           ( self.is_list() or self.is_string() ):
-            new_value = ' '.join(value)
-        elif isinstance( value, bool ) and self.is_boolean():
-            if value:
-                new_value = "yes"
-            else:
-                new_value = "no"
-        else:
-            new_value = str(value)
-
         cdef:
+            str new_value = _stringify_value(value)
             const char * as_c = new_value
             char * c_copy = NULL
             bint ok
@@ -236,6 +238,19 @@ cdef class LCFGResource:
     def value(self):
         if not c_res.lcfgresource_unset_value(self._res):
             raise RuntimeError("Failed to unset value")
+
+    def valid_value( self, value ):
+        cdef:
+            str new_value
+            const char * as_c = NULL
+
+        is_valid = False
+        if value is not None:
+            new_value = _stringify_value(value)
+            as_c = new_value
+            is_valid = c_res.lcfgresource_valid_value( self._res, as_c )
+
+        return is_valid
 
     cpdef bint has_value(self):
         return c_res.lcfgresource_has_value( self._res )
@@ -453,9 +468,33 @@ cdef class LCFGResource:
     cpdef bint is_valid(self):
         return c_res.lcfgresource_is_valid(self._res)
 
+    @classmethod
+    def valid_name(cls, value):
+        value_as_str = _stringify_value(value)
+        cdef const char * value_as_c = value_as_str
+        return c_res.lcfgresource_valid_name(value_as_c)
+
+    @classmethod
+    def valid_boolean(cls, value):
+        value_as_str = _stringify_value(value)
+        cdef const char * value_as_c = value_as_str
+        return c_res.lcfgresource_valid_boolean(value_as_c)
+
+    @classmethod
+    def valid_integer(cls, value):
+        value_as_str = _stringify_value(value)
+        cdef const char * value_as_c = value_as_str
+        return c_res.lcfgresource_valid_integer(value_as_c)
+
+    @classmethod
+    def valid_list(cls, value):
+        value_as_str = _stringify_value(value)
+        cdef const char * value_as_c = value_as_str
+        return c_res.lcfgresource_valid_list(value_as_c)
+
     def to_string(self, prefix=None, style=LCFGResourceStyle.SPEC, options=LCFGOption.NONE ):
 
-        cdef char * c_prefix = NULL
+        cdef const char * c_prefix = NULL
         if prefix is not None: c_prefix = prefix
 
         cdef:
