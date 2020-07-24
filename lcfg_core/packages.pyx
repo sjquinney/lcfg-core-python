@@ -138,7 +138,7 @@ cdef class LCFGPackage:
 
             if status == LCFGStatus.ERROR.value or self._pkg == NULL:
                 if msg != NULL: err_msg = msg
-                raise RuntimeError(f"Failed to parse specification: {err_msg}")
+                raise RuntimeError(f"Failed to parse '{spec}': {err_msg}")
 
         finally:
             PyMem_Free(msg)
