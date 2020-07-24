@@ -96,7 +96,7 @@ cdef class LCFGResource:
         if is_empty(value):
             raise ValueError("Invalid name: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
 
         if not c_res.lcfgresource_valid_name(as_c):
             raise ValueError(f"Invalid name '{value}'")
@@ -275,7 +275,7 @@ cdef class LCFGResource:
         if is_empty(value):
             raise ValueError("Invalid context: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
 
         if not c_res.lcfgresource_valid_context(as_c):
             raise ValueError(f"Invalid context '{value}'")
@@ -290,12 +290,12 @@ cdef class LCFGResource:
     cpdef bint has_context(self):
         return c_res.lcfgresource_has_context( self._res )
 
-    cpdef add_context(self,str value):
+    def add_context(self,str value):
 
         if is_empty(value):
             raise ValueError("Invalid context: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
 
         if not c_res.lcfgresource_valid_context(as_c):
             raise ValueError(f"Invalid context '{value}'")
@@ -328,7 +328,7 @@ cdef class LCFGResource:
         if is_empty(value):
             raise ValueError("Invalid derivation: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
 
         cdef bint ok = c_res.lcfgresource_set_derivation_as_string( self._res, as_c )
 
@@ -342,7 +342,7 @@ cdef class LCFGResource:
         if is_empty(value):
             raise ValueError("Invalid derivation: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
 
         cdef bint ok = c_res.lcfgresource_add_derivation_string( self._res, as_c )
         if not ok:
@@ -352,7 +352,7 @@ cdef class LCFGResource:
 
     cpdef add_derivation_file_line(self, str filename, int linenum):
 
-        cdef char * as_c = filename
+        cdef const char * as_c = filename
 
         cdef bint ok = c_res.lcfgresource_add_derivation_file_line( self._res, as_c, linenum )
         if not ok:
@@ -379,7 +379,7 @@ cdef class LCFGResource:
         if is_empty(value):
             raise ValueError("Invalid comment: empty string")
 
-        cdef char * as_c = value
+        cdef const char * as_c = value
         cdef char * c_copy = strdup(as_c)
         cdef bint ok = c_res.lcfgresource_set_comment( self._res, c_copy )
 
