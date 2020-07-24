@@ -105,3 +105,8 @@ cdef extern from "lcfg/resources.h":
                                     LCFGResourceStyle style,
                                     LCFGOption options,
                                     char ** result, size_t * size )
+
+    LCFGStatus lcfgresource_from_spec( const char * spec,
+                                       LCFGResourceStruct ** result,
+				                       char ** hostname, char ** compname,
+				                       char ** msg )

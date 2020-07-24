@@ -54,7 +54,7 @@ cdef class LCFGResource:
     def __init__( self, spec=None, style=None, **kwargs ):
         self.update(**kwargs)
 
-    def __cinit__( self, spec=None, style=None, full_init=True, **kwargs ):
+    def __cinit__( self, spec=None, style=LCFGResourceStyle.SPEC, full_init=True, **kwargs ):
 
         # For speed a buffer is maintained which can be reused for
         # various stringification tasks.
@@ -72,6 +72,33 @@ cdef class LCFGResource:
             if self._res == NULL:
                 raise RuntimeError("Failed to create new resource")
             return
+
+        cdef:
+            str err_msg = 'unknown error'
+            char * msg = NULL
+            char * hostname = NULL
+            char * compname = NULL
+            c_res.LCFGStatus status = LCFGStatus.ERROR.value
+            const char * spec_as_c = spec
+
+        try:
+
+            if style == LCFGResourceStyle.SPEC:
+                status = c_res.lcfgresource_from_spec( spec_as_c, &self._res,
+                                                   &hostname, &compname, &msg )
+            else:
+                raise RuntimeError(f"No support for {style} parsing")
+
+            if status == LCFGStatus.ERROR.value or self._res == NULL:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError(f"Failed to parse '{spec}': {err_msg}")
+
+        finally:
+            PyMem_Free(hostname)
+            PyMem_Free(compname)
+            PyMem_Free(msg)
+
+        return
 
     def update( self, **kwargs ):
         for attr in self.fields:
@@ -203,6 +230,7 @@ cdef class LCFGResource:
 
         return result
 
+    @property
     def v(self):
         return self.value
 
