@@ -192,6 +192,7 @@ cdef class LCFGResource:
     def value(self, value):
         if value is None:
             del(self.value)
+            return
 
         cdef str new_value
 
@@ -374,6 +375,66 @@ cdef class LCFGResource:
 
     cpdef bint has_comment(self):
         return c_res.lcfgresource_has_comment( self._res )
+
+    # template
+
+    @property
+    def template(self):
+
+        cdef:
+            str result = None
+            char * as_c = NULL
+            size_t buf_size = 0
+            Py_ssize_t len
+
+        if self.has_template():
+            len = c_res.lcfgresource_get_template_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
+            result = (<bytes> as_c[:len]).decode('UTF-8')
+
+        return result
+
+    @template.setter
+    def template(self, str value):
+
+        if is_empty(value):
+            del(self.template)
+            return
+
+        cdef:
+            const char * as_c = value
+            cdef bint ok
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            ok = c_res.lcfgresource_set_template_as_string( self._res, as_c, &msg )
+
+            if not ok:
+                if msg != NULL: err_msg = msg
+                raise ValueError(f"Failed to set template to '{value}': {err_msg}")
+        finally:
+            PyMem_Free(msg)
+
+    @template.deleter
+    def template(self):
+
+        cdef:
+            bint ok
+            char * msg = NULL
+            str err_msg = 'unknown error'
+
+        try:
+            ok = c_res.lcfgresource_set_template_as_string( self._res, "", &msg )
+
+            if not ok:
+                if msg != NULL: err_msg = msg
+                raise ValueError(f"Failed to unset template: {err_msg}")
+        finally:
+            PyMem_Free(msg)
+
+    cpdef bint has_template(self):
+        return c_res.lcfgresource_has_template( self._res )
+
 
     @property
     def priority(self):
