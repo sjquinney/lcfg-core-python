@@ -401,16 +401,11 @@ cdef class LCFGResource:
 
         cdef:
             str result = None
-            char * as_c = NULL
-            size_t buf_size = 0
             Py_ssize_t len
 
         if self.has_derivation():
-            try:
-                len = c_res.lcfgresource_get_derivation_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
-                result = (<bytes> as_c[:len]).decode('UTF-8')
-            finally:
-                PyMem_Free(as_c)
+            len = c_res.lcfgresource_get_derivation_as_string(self._res, LCFGOption.NONE.value, &(self.__str_buf), &(self.__buf_size) )
+            result = (<bytes> self.__str_buf[:len]).decode('UTF-8')
 
         return result
 
@@ -489,16 +484,11 @@ cdef class LCFGResource:
 
         cdef:
             str result = None
-            char * as_c = NULL
-            size_t buf_size = 0
             Py_ssize_t len
 
         if self.has_template():
-            try:
-                len = c_res.lcfgresource_get_template_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
-                result = (<bytes> as_c[:len]).decode('UTF-8')
-            finally:
-                PyMem_Free(as_c)
+            len = c_res.lcfgresource_get_template_as_string(self._res, LCFGOption.NONE.value, &(self.__str_buf), &(self.__buf_size) )
+            result = (<bytes> self.__str_buf[:len]).decode('UTF-8')
 
         return result
 
