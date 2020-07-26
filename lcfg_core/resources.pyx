@@ -104,6 +104,41 @@ cdef class LCFGResource:
     def from_spec( cls, spec, **kwargs ):
         return cls( spec=spec, style=LCFGResourceStyle.SPEC, **kwargs )
 
+    @classmethod
+    def from_env( cls, str resource, str comp=None, str value_pfx=None, str type_pfx=None, options=LCFGOption.NONE, **kwargs ):
+
+        cdef:
+            const char * c_comp      = NULL
+            const char * c_value_pfx = NULL
+            const char * c_type_pfx  = NULL
+            const char * c_resource  = resource
+            c_res.LCFGOption options_value = int(options)
+            c_res.LCFGStatus status = LCFGStatus.ERROR.value
+            char * msg = NULL
+            str err_msg = 'unknown error'
+            LCFGResource self = cls(full_init=False)
+
+        if comp      is not None: c_comp      = comp
+        if value_pfx is not None: c_value_pfx = value_pfx
+        if type_pfx  is not None: c_type_pfx  = type_pfx
+
+        try:
+            status = c_res.lcfgresource_from_env( c_resource, c_comp,
+                                                  c_value_pfx, c_type_pfx,
+                                                  &self._res, options_value,
+                                                  &msg )
+
+            if status == LCFGStatus.ERROR.value or self._res == NULL:
+                if msg != NULL: err_msg = msg
+                raise RuntimeError(f"Failed to load resource '{resource}' from environment: err_msg")
+
+            self.update(**kwargs)
+
+        finally:
+            PyMem_Free(msg)
+
+        return self
+
     def update( self, **kwargs ):
         for attr in self.fields:
             if attr in kwargs: setattr( self, attr, kwargs[attr] )

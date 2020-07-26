@@ -116,3 +116,9 @@ cdef extern from "lcfg/resources.h":
                                        LCFGResourceStruct ** result,
 				                       char ** hostname, char ** compname,
 				                       char ** msg )
+
+    LCFGStatus lcfgresource_from_env( const char * resname,
+                                      const char * compname,
+                                      const char * val_pfx, const char * type_pfx,
+                                      LCFGResourceStruct ** result,
+                                      LCFGOption options, char ** msg )
