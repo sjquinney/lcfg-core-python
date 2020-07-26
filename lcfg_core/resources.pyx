@@ -325,6 +325,24 @@ cdef class LCFGResource:
     cpdef bint has_value(self):
         return c_res.lcfgresource_has_value( self._res )
 
+    cpdef value_needs_encode(self):
+        return c_res.lcfgresource_value_needs_encode(self._res)
+
+    def enc_value(self):
+
+        cdef:
+            str result = None
+            cdef char * as_c = NULL;
+
+        try:
+            if self.has_value():
+                as_c = c_res.lcfgresource_enc_value(self._res)
+                result = as_c
+        finally:
+            PyMem_Free(as_c)
+
+        return result
+
     # context
 
     @property
@@ -388,8 +406,11 @@ cdef class LCFGResource:
             Py_ssize_t len
 
         if self.has_derivation():
-            len = c_res.lcfgresource_get_derivation_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
-            result = (<bytes> as_c[:len]).decode('UTF-8')
+            try:
+                len = c_res.lcfgresource_get_derivation_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
+                result = (<bytes> as_c[:len]).decode('UTF-8')
+            finally:
+                PyMem_Free(as_c)
 
         return result
 
@@ -473,8 +494,11 @@ cdef class LCFGResource:
             Py_ssize_t len
 
         if self.has_template():
-            len = c_res.lcfgresource_get_template_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
-            result = (<bytes> as_c[:len]).decode('UTF-8')
+            try:
+                len = c_res.lcfgresource_get_template_as_string(self._res, LCFGOption.NONE.value, &as_c, &buf_size )
+                result = (<bytes> as_c[:len]).decode('UTF-8')
+            finally:
+                PyMem_Free(as_c)
 
         return result
 

@@ -55,6 +55,8 @@ cdef extern from "lcfg/resources.h":
     bint lcfgresource_valid_value_for_type( LCFGResourceType type,
                                             const char * value )
 
+    bint lcfgresource_value_needs_encode( const LCFGResourceStruct * res );
+
     bint lcfgresource_valid_value( const LCFGResourceStruct * res,
                                    const char * value )
 
@@ -63,6 +65,8 @@ cdef extern from "lcfg/resources.h":
     bint lcfgresource_set_value( LCFGResourceStruct * res,
                                  char * new_value )
     bint lcfgresource_unset_value( LCFGResourceStruct * res )
+
+    char * lcfgresource_enc_value( const LCFGResourceStruct * res)
 
     bint lcfgresource_has_derivation( const LCFGResourceStruct * res )
     ssize_t lcfgresource_get_derivation_as_string( const LCFGResourceStruct * res,
