@@ -100,6 +100,10 @@ cdef class LCFGResource:
 
         return
 
+    @classmethod
+    def from_spec( cls, spec, **kwargs ):
+        return cls( spec=spec, style=LCFGResourceStyle.SPEC, **kwargs )
+
     def update( self, **kwargs ):
         for attr in self.fields:
             if attr in kwargs: setattr( self, attr, kwargs[attr] )
