@@ -562,7 +562,7 @@ cdef class LCFGResource:
     cpdef bint is_valid(self):
         return c_res.lcfgresource_is_valid(self._res)
 
-    cpdef bint merge_derivation( self, LCFGResource * other ):
+    cpdef bint merge_derivation( self, LCFGResource other ):
         return c_res.lcfgresource_merge_derivation( self._res, other._res )
 
     @classmethod
@@ -645,6 +645,45 @@ cdef class LCFGResource:
 
     def to_export( self, str comp=None, options=LCFGOption.NONE, str value_pfx=None, str type_pfx=None ):
         return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.EXPORT, value_pfx=value_pfx, type_pfx=type_pfx)
+
+    cpdef int compare( self, LCFGResource other ):
+        return c_res.lcfgresource_compare( self._res, other._res )
+
+    cpdef bint equals( self, LCFGResource other):
+        return c_res.lcfgresource_compare( self._res, other._res )
+
+    def compare_names( self, LCFGResource other ):
+        return c_res.lcfgresource_compare_names( self._res, other._res )
+
+    def compare_values( self, LCFGResource other ):
+        return c_res.lcfgresource_compare_values( self._res, other._res )
+
+    def __eq__(self,LCFGResource other not None):
+        return self.equals(other)
+
+    def __lt__(self,LCFGResource other not None):
+        return self.compare(other) < 0
+
+    def __le__(self,LCFGResource other not None):
+        return self.compare(other) <= 0
+
+    def __gt__(self,LCFGResource other not None):
+        return self.compare(other) > 0
+
+    def __ge__(self,LCFGResource other not None):
+        return self.compare(other) >= 0
+
+    cpdef bint same_name( self, LCFGResource other):
+        return c_res.lcfgresource_same_name( self._res, other._res )
+
+    cpdef bint same_value( self, LCFGResource other):
+        return c_res.lcfgresource_same_value( self._res, other._res )
+
+    cpdef bint same_type( self, LCFGResource other):
+        return c_res.lcfgresource_same_type( self._res, other._res )
+
+    cpdef bint same_context( self, LCFGResource other):
+        return c_res.lcfgresource_same_context( self._res, other._res )
 
     def __bool__(self):
         return self.is_true()

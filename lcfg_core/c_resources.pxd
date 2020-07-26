@@ -126,3 +126,27 @@ cdef extern from "lcfg/resources.h":
                                       const char * val_pfx, const char * type_pfx,
                                       LCFGResourceStruct ** result,
                                       LCFGOption options, char ** msg )
+
+    int lcfgresource_compare_names( const LCFGResourceStruct * res1, 
+                                    const LCFGResourceStruct * res2 );
+
+    int lcfgresource_compare_values( const LCFGResourceStruct * res1,
+                                     const LCFGResourceStruct * res2 );
+
+    int lcfgresource_compare( const LCFGResourceStruct * res1,
+                              const LCFGResourceStruct * res2 );
+
+    bint lcfgresource_same_name( const LCFGResourceStruct * res1, 
+                                 const LCFGResourceStruct * res2 );
+
+    bint lcfgresource_same_value( const LCFGResourceStruct * res1,
+                                  const LCFGResourceStruct * res2 );
+
+    bint lcfgresource_same_type( const LCFGResourceStruct * res1,
+                                 const LCFGResourceStruct * res2 );
+
+    bint lcfgresource_same_context( const LCFGResourceStruct * res1,
+                                    const LCFGResourceStruct * res2 );
+
+    bint lcfgresource_equals( const LCFGResourceStruct * res1,
+                              const LCFGResourceStruct * res2 );
