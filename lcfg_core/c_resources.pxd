@@ -106,6 +106,12 @@ cdef extern from "lcfg/resources.h":
                                     LCFGOption options,
                                     char ** result, size_t * size )
 
+    ssize_t lcfgresource_to_export( const LCFGResourceStruct * res,
+                                    const char * compname,
+                                    const char * val_pfx, const char * type_pfx,
+                                    LCFGOption options,
+                                    char ** result, size_t * size )
+
     LCFGStatus lcfgresource_from_spec( const char * spec,
                                        LCFGResourceStruct ** result,
 				                       char ** hostname, char ** compname,

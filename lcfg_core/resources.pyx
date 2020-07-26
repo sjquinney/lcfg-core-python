@@ -523,10 +523,21 @@ cdef class LCFGResource:
         cdef const char * value_as_c = value_as_str
         return c_res.lcfgresource_valid_list(value_as_c)
 
-    def to_string(self, prefix=None, style=LCFGResourceStyle.SPEC, options=LCFGOption.NONE ):
+    def to_string(self, str comp=None, style=LCFGResourceStyle.SPEC, options=LCFGOption.NONE, str value_pfx=None, str type_pfx=None ):
 
-        cdef const char * c_prefix = NULL
-        if prefix is not None: c_prefix = prefix
+        if style == LCFGResourceStyle.EXPORT and is_empty(comp) and \
+           ( value_pfx is None or type_pfx is None or \
+             "%s" in value_pfx or "%s" in type_pfx ):
+            raise ValueError("Component name MUST be specified")
+
+        cdef:
+            const char * c_comp      = NULL
+            const char * c_value_pfx = NULL
+            const char * c_type_pfx  = NULL
+
+        if comp      is not None: c_comp      = comp
+        if value_pfx is not None: c_value_pfx = value_pfx
+        if type_pfx  is not None: c_type_pfx  = type_pfx
 
         cdef:
             char ** buf_addr       = &(self.__str_buf)
@@ -535,9 +546,17 @@ cdef class LCFGResource:
             Py_ssize_t len
             str result
 
-        len = c_res.lcfgresource_to_string( self._res, c_prefix,
-                                            style.value, options_value,
-                                            buf_addr, buf_size_addr );
+        if style == LCFGResourceStyle.EXPORT:
+            len = c_res.lcfgresource_to_export( self._res, c_comp,
+                                                c_value_pfx, c_type_pfx,
+                                                options_value,
+                                                buf_addr, buf_size_addr );
+
+        else:
+            len = c_res.lcfgresource_to_string( self._res, c_comp,
+                                                style.value,
+                                                options_value,
+                                                buf_addr, buf_size_addr );
 
         if len < 0:
             raise RuntimeError("Failed to stringify resource")
@@ -546,11 +565,26 @@ cdef class LCFGResource:
 
         return result
 
+    def to_spec( self, str comp=None, options=LCFGOption.NONE ):
+        return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.SPEC)
+
+    def to_status( self, str comp=None, options=LCFGOption.NONE ):
+        return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.STATUS)
+
+    def to_summary( self, str comp=None, options=LCFGOption.NONE ):
+        return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.SUMMARY)
+
+    def to_value( self, str comp=None, options=LCFGOption.NONE ):
+        return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.VALUE)
+
+    def to_export( self, str comp=None, options=LCFGOption.NONE, str value_pfx=None, str type_pfx=None ):
+        return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.EXPORT, value_pfx=value_pfx, type_pfx=type_pfx)
+
     def __bool__(self):
         return self.is_true()
 
     def __str__(self):
-        return self.to_string()
+        return self.to_spec()
 
     def __dealloc__(self):
         c_res.lcfgresource_relinquish(self._res)
