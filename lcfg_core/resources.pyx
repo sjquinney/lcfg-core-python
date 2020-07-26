@@ -562,6 +562,9 @@ cdef class LCFGResource:
     cpdef bint is_valid(self):
         return c_res.lcfgresource_is_valid(self._res)
 
+    cpdef bint merge_derivation( self, LCFGResource * other ):
+        return c_res.lcfgresource_merge_derivation( self._res, other._res )
+
     @classmethod
     def valid_name(cls, value):
         value_as_str = _stringify_value(value)
