@@ -669,6 +669,8 @@ cdef class LCFGResource:
             const char * c_comp      = NULL
             const char * c_value_pfx = NULL
             const char * c_type_pfx  = NULL
+            str type_var
+            str value_var
 
         if comp      is not None: c_comp      = comp
         if value_pfx is not None: c_value_pfx = value_pfx
@@ -707,6 +709,7 @@ cdef class LCFGResource:
                 raise RuntimeError(f"Failed to export resource to environment")
 
             type_var = self.__str_buf
+
             if not self.valid_env_var(type_var):
                 raise RuntimeError(f"Invalid environment variable '{type_var}'")
 
