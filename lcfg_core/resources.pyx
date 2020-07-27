@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import collections.abc
+import os
+
 cimport lcfg_core.c_resources as c_res
 
 from libc.string cimport strdup
@@ -24,6 +26,9 @@ class LCFGResourceStyle(IntFlag):
     SUMMARY = 2
     EXPORT  = 3
     VALUE   = 4
+
+cdef const char * RESOURCE_ENV_VAL_PFX  = "LCFG_%s_"
+cdef const char * RESOURCE_ENV_TYPE_PFX = "LCFGTYPE_%s_"
 
 def _stringify_value( value ):
 
@@ -184,6 +189,18 @@ cdef class LCFGResource:
         cdef c_res.LCFGResourceType type_id = c_res.lcfgresource_get_type(self._res)
         
         result = LCFGResourceType(type_id)
+        return result
+
+    @property
+    def type_string(self):
+
+        cdef:
+            str result = None
+            Py_ssize_t len
+
+        len = c_res.lcfgresource_get_type_as_string(self._res, LCFGOption.NONE.value, &(self.__str_buf), &(self.__buf_size) )
+        result = (<bytes> self.__str_buf[:len]).decode('UTF-8')
+
         return result
 
     @type.setter
@@ -621,6 +638,11 @@ cdef class LCFGResource:
 
         return result
 
+    @classmethod
+    def valid_env_var( cls, value ):
+        cdef const char * value_as_c = value
+        return c_res.lcfgresource_valid_env_var(value_as_c)
+
     def to_spec( self, str comp=None, options=LCFGOption.NONE ):
         return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.SPEC)
 
@@ -635,6 +657,62 @@ cdef class LCFGResource:
 
     def to_export( self, str comp=None, options=LCFGOption.NONE, str value_pfx=None, str type_pfx=None ):
         return self.to_string( comp=comp, options=options, style=LCFGResourceStyle.EXPORT, value_pfx=value_pfx, type_pfx=type_pfx)
+
+    def to_env( self, str comp=None,  options=LCFGOption.NONE, str value_pfx=None, str type_pfx=None ):
+
+        if is_empty(comp) and \
+           ( value_pfx is None or type_pfx is None or \
+             "%s" in value_pfx or "%s" in type_pfx ):
+            raise ValueError("Component name MUST be specified")
+
+        cdef:
+            const char * c_comp      = NULL
+            const char * c_value_pfx = NULL
+            const char * c_type_pfx  = NULL
+
+        if comp      is not None: c_comp      = comp
+        if value_pfx is not None: c_value_pfx = value_pfx
+        if type_pfx  is not None: c_type_pfx  = type_pfx
+
+        cdef:
+            c_res.LCFGOption options_value = int(options)
+            c_res.LCFGStatus status = LCFGStatus.ERROR.value
+            Py_ssize_t len
+            const char * c_resname
+
+        c_resname = c_res.lcfgresource_get_name(self._res)
+
+        len = c_res.lcfgresource_build_env_var( c_resname, c_comp, RESOURCE_ENV_VAL_PFX, c_value_pfx, &(self.__str_buf), &(self.__buf_size) )
+
+        if len < 0:
+            raise RuntimeError(f"Failed to export resource to environment")
+
+        value_var = self.__str_buf
+
+        if not self.valid_env_var(value_var):
+            raise RuntimeError(f"Invalid environment variable '{value_var}'")
+
+        env = os.environ
+
+        if self.has_value():
+            env[value_var] = str(self.value)
+        else:
+            env[value_var] = ""
+
+        if options & LCFGOption.USE_META and not self.is_string():
+
+            len = c_res.lcfgresource_build_env_var( c_resname, c_comp, RESOURCE_ENV_TYPE_PFX, c_type_pfx, &(self.__str_buf), &(self.__buf_size) )
+
+            if len < 0:
+                raise RuntimeError(f"Failed to export resource to environment")
+
+            type_var = self.__str_buf
+            if not self.valid_env_var(type_var):
+                raise RuntimeError(f"Invalid environment variable '{type_var}'")
+
+            env[type_var] = self.type_string
+
+        return
 
     cpdef int compare( self, LCFGResource other ):
         return c_res.lcfgresource_compare( self._res, other._res )

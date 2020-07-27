@@ -150,3 +150,11 @@ cdef extern from "lcfg/resources.h":
 
     bint lcfgresource_equals( const LCFGResourceStruct * res1,
                               const LCFGResourceStruct * res2 );
+
+    ssize_t lcfgresource_build_env_var( const char * resname,
+                                        const char * compname,
+                                        const char * default_base,
+                                        const char * base,
+                                        char ** result, size_t * size )
+
+    bint lcfgresource_valid_env_var( const char * name );
